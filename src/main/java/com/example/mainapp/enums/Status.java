@@ -1,5 +1,5 @@
 package com.example.mainapp.enums;
 
-public enum Statue {
+public enum Status {
     EMP,HRR,CEO
 }

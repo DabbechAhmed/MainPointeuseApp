@@ -1,6 +1,6 @@
 package com.example.mainapp.model;
 
-import com.example.mainapp.enums.Statue;
+import com.example.mainapp.enums.Status;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -13,70 +13,73 @@ public class Employee implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private UUID id;
-    private String dept;
     private String name;
     private String surname;
-    private Statue status;
+    private Status status;
+    private Department department;
+    private Schedule schedule;
+    private long soldeMinutes;
 
     public Employee() {
-        id = UUID.randomUUID();
-        dept = "";
-        name = "";
-        surname = "";
-        status = Statue.EMP;
+        this.id = UUID.randomUUID();
+        this.name = "";
+        this.surname = "";
+        this.status = Status.EMP;
+        this.schedule = new Schedule();
+        this.soldeMinutes = 0L;
     }
 
-    public Employee(String dept, String name, String surname, Statue status) {
-        id = UUID.randomUUID();
-        this.dept = dept;
+    public Employee(Department department, String name, String surname, Status status) {
+        this.id = UUID.randomUUID();
+        this.department = department;
         this.name = name;
         this.surname = surname;
         this.status = status;
+        this.schedule = new Schedule();
+        this.soldeMinutes = 0L;
     }
 
-    public UUID getId() {
-        return id;
+    // ==========================================
+    // MÉTHODES MÉTIER
+    // ==========================================
+
+    public void modifierSoldeMinutes(long minutes) {
+        this.soldeMinutes += minutes;
     }
 
-    public String getDept() {
-        return dept;
-    }
+    // ==========================================
+    // GETTERS & SETTERS COMPLETS
+    // ==========================================
 
-    public String getName() {
-        return name;
-    }
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
 
-    public String getSurname() {
-        return surname;
-    }
+    public Department getDepartment() { return department; }
+    public void setDepartment(Department department) { this.department = department; }
 
-    public void setId(UUID id) {
-        this.id = id;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public void setDept(String dept) {
-        this.dept = dept;
-    }
+    public String getSurname() { return surname; }
+    public void setSurname(String surname) { this.surname = surname; }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    public Status getStatus() { return status; }
+    public void setStatus(Status status) { this.status = status; }
 
-    public void setSurname(String surname) {
-        this.surname = surname;
-    }
+    public Schedule getSchedule() { return schedule; }
+    public void setSchedule(Schedule schedule) { this.schedule = schedule; }
 
-    public void setStatus(Statue status) {
-        this.status = status;
-    }
+    public long getSoldeMinutes() { return soldeMinutes; }
+    public void setSoldeMinutes(long soldeMinutes) { this.soldeMinutes = soldeMinutes; }
 
-    public Statue getStatus() {
-        return status;
-    }
+    // ==========================================
+    // MÉTHODES REDÉFINIES
+    // ==========================================
 
     @Override
     public String toString() {
-        return id + ", " + name + ", " + surname + ", " + dept + ", " + status;
+        String deptName = (department != null) ? department.getName() : "Aucun";
+        return name + " " + surname + " [" + deptName + "]";
     }
 
     @Override
@@ -85,20 +88,23 @@ public class Employee implements Serializable {
         if (object == null || this.getClass() != object.getClass()) return false;
 
         Employee emp = (Employee) object;
-
-        return id.equals(emp.id) && name.equals(emp.name) && surname.equals(emp.surname);
+        return id.equals(emp.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id) + name.hashCode() + surname.hashCode();
+        return Objects.hash(id);
     }
 
     public void setEmployee(Employee employee) {
-        this.id = employee.id;
-        this.dept = employee.dept;
-        this.name = employee.name;
-        this.surname = employee.surname;
-        this.status = employee.status;
+        if (employee != null) {
+            this.id = employee.id;
+            this.department = employee.department;
+            this.name = employee.name;
+            this.surname = employee.surname;
+            this.status = employee.status;
+            this.schedule = employee.schedule;
+            this.soldeMinutes = employee.soldeMinutes;
+        }
     }
 }

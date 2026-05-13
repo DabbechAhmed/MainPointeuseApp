@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.mainapp.controller.MainController">
+
+    <!-- TOP: Menu Bar -->
+    <top>
+        <VBox>
+            <MenuBar>
+                <Menu text="Fichier">
+                    <MenuItem text="Nouveau"/>
+                    <MenuItem text="Ouvrir"/>
+                    <MenuItem text="Enregistrer"/>
+                    <SeparatorMenuItem/>
+                    <MenuItem text="Quitter" onAction="#handleExit"/>
+                </Menu>
+                <Menu text="Employé">
+                    <MenuItem text="Ajouter" onAction="#handleAddEmployee"/>
+                    <MenuItem text="Supprimer" onAction="#handleDeleteEmployee"/>
+                    <MenuItem text="Modifier" onAction="#handleEditEmployee"/>
+                </Menu>
+                <Menu text="Aide">
+                    <MenuItem text="À propos"/>
+                </Menu>
+            </MenuBar>
+
+            <!-- Toolbar -->
+            <ToolBar prefHeight="40.0">
+                <Button text="➕ Ajouter" onAction="#handleAddEmployee"/>
+                <Button text="❌ Supprimer" onAction="#handleDeleteEmployee"/>
+                <Separator orientation="VERTICAL"/>
+                <Button text="🔄 Rafraîchir" onAction="#handleRefresh"/>
+                <Separator orientation="VERTICAL"/>
+                <TextField fx:id="searchField" promptText="Rechercher..." prefWidth="200"/>
+            </ToolBar>
+        </VBox>
+    </top>
+
+    <!-- CENTER: TabPane with Employees, Attendance, Schedule -->
+    <center>
+        <TabPane tabClosingPolicy="UNAVAILABLE">
+
+            <!-- Tab 1: Employees -->
+            <Tab text="Employés">
+                <BorderPane>
+                    <center>
+                        <TableView fx:id="employeeTable" prefHeight="400.0">
+                            <columns>
+                                <TableColumn text="ID" prefWidth="100"/>
+                                <TableColumn text="Nom" prefWidth="120"/>
+                                <TableColumn text="Prénom" prefWidth="120"/>
+                                <TableColumn text="Département" prefWidth="150"/>
+                                <TableColumn text="Status" prefWidth="100"/>
+                                <TableColumn text="Solde Minutes" prefWidth="120"/>
+                            </columns>
+                        </TableView>
+                    </center>
+                </BorderPane>
+            </Tab>
+
+            <!-- Tab 2: Attendance -->
+            <Tab text="Pointages">
+                <BorderPane>
+                    <top>
+                        <HBox spacing="10" style="-fx-padding: 10;">
+                            <Label text="Filtrer par date:"/>
+                            <DatePicker fx:id="dateFilter"/>
+                            <Button text="Appliquer" onAction="#handleFilterAttendance"/>
+                        </HBox>
+                    </top>
+                    <center>
+                        <TableView fx:id="attendanceTable" prefHeight="400.0">
+                            <columns>
+                                <TableColumn text="ID Employé" prefWidth="150"/>
+                                <TableColumn text="Nom" prefWidth="120"/>
+                                <TableColumn text="Date" prefWidth="120"/>
+                                <TableColumn text="Heure Pointage" prefWidth="150"/>
+                            </columns>
+                        </TableView>
+                    </center>
+                </BorderPane>
+            </Tab>
+
+            <!-- Tab 3: Schedule -->
+            <Tab text="Plannings">
+                <BorderPane>
+                    <center>
+                        <TableView fx:id="scheduleTable" prefHeight="400.0">
+                            <columns>
+                                <TableColumn text="Employé" prefWidth="150"/>
+                                <TableColumn text="Lundi" prefWidth="100"/>
+                                <TableColumn text="Mardi" prefWidth="100"/>
+                                <TableColumn text="Mercredi" prefWidth="100"/>
+                                <TableColumn text="Jeudi" prefWidth="100"/>
+                                <TableColumn text="Vendredi" prefWidth="100"/>
+                            </columns>
+                        </TableView>
+                    </center>
+                </BorderPane>
+            </Tab>
+
+        </TabPane>
+    </center>
+
+    <!-- BOTTOM: Status Bar -->
+    <bottom>
+        <HBox style="-fx-padding: 10; -fx-background-color: #f0f0f0;" spacing="20">
+            <Label fx:id="statusLabel" text="Prêt"/>
+            <Separator orientation="VERTICAL"/>
+            <Label fx:id="employeeCountLabel" text="Employés: 0"/>
+        </HBox>
+    </bottom>
+
+</BorderPane>

@@ -13,4 +13,6 @@ module com.example.mainapp {
 
     opens com.example.mainapp to javafx.fxml;
     exports com.example.mainapp;
+    exports com.example.mainapp.controller;
+    opens com.example.mainapp.controller to javafx.fxml;
 }
