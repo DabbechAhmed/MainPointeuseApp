@@ -1,27 +1,22 @@
 package com.example.mainapp.network;
 
-
+import com.example.mainapp.model.Company; // ✅ Nouvel import
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 public class TCPServer implements Runnable {
 
-    // 1. L'instance statique privée (Le cœur du Singleton)
     private static TCPServer instance;
 
-    // Variables du serveur
-    private int port = 8080; // Port par défaut
+    private int port = 8080;
     private boolean isRunning = false;
     private ServerSocket serverSocket;
+    private Company company; // ✅ Stockage de la référence de l'entreprise
 
-    // 2. Le constructeur PRIVÉ (Empêche de faire 'new TCPServer()')
     private TCPServer() {
-        // Initialisation si nécessaire
     }
 
-    // 3. La méthode d'accès globale
-    // Le mot-clé 'synchronized' évite les bugs si deux endroits demandent l'instance en même temps
     public static synchronized TCPServer getInstance() {
         if (instance == null) {
             instance = new TCPServer();
@@ -29,14 +24,14 @@ public class TCPServer implements Runnable {
         return instance;
     }
 
-    // --- Méthodes de contrôle du serveur ---
-
-    public void demarrer(int port) {
+    // ✅ La méthode accepte maintenant la Company
+    public void demarrer(int port, Company company) {
         if (!isRunning) {
             this.port = port;
-            // On lance le serveur dans un Thread séparé pour ne pas bloquer JavaFX
+            this.company = company; // Sauvegarde du pointeur de données
+
             Thread threadServeur = new Thread(this);
-            threadServeur.setDaemon(true); // Le thread s'arrêtera si on ferme l'application
+            threadServeur.setDaemon(true);
             threadServeur.start();
         }
     }
@@ -52,8 +47,6 @@ public class TCPServer implements Runnable {
         }
     }
 
-    // --- La boucle d'écoute (Méthode exigée par Runnable) ---
-
     @Override
     public void run() {
         try {
@@ -62,11 +55,13 @@ public class TCPServer implements Runnable {
             System.out.println("✅ Serveur TCP démarré et en écoute sur le port " + port);
 
             while (isRunning) {
-                // Le code se bloque ici et attend patiemment qu'une pointeuse se connecte
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("📡 Nouvelle connexion reçue depuis : " + clientSocket.getInetAddress());
 
-                // TODO: Passer ce 'clientSocket' à un "ClientHandler" pour lire l'objet Pointage
+                // ✅ Remplacement du TODO par la création et le lancement du ClientHandler
+                ClientHandler handler = new ClientHandler(clientSocket, this.company);
+                Thread threadClient = new Thread(handler);
+                threadClient.start(); // S'exécute en arrière-plan pour ce client précis
             }
         } catch (IOException e) {
             if (isRunning) {
