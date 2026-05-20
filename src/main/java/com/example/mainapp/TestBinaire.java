@@ -3,7 +3,7 @@ package com.example.mainapp;
 import com.example.mainapp.model.Company;
 import com.example.mainapp.model.Department;
 import com.example.mainapp.model.Employee;
-import com.example.mainapp.enums.Status; // N'oublie pas l'import de l'Enum
+import com.example.mainapp.enums.Status;
 import com.example.mainapp.service.PersistenceManager;
 
 public class TestBinaire {
@@ -15,20 +15,32 @@ public class TestBinaire {
         // Création de l'entreprise racine
         Company maCompagnie = new Company("Polytech Tours");
 
-        // 1. On crée d'abord le département
+        // 1. On crée le département
         Department deptIT = new Department("Informatique");
 
-        // 2. On crée l'employé en lui donnant l'objet département créé juste au-dessus
-        Employee emp1 = new Employee(deptIT, "Dupont", "Jean", Status.EMP);
+        // 2. On crée les employés (SANS Dupont)
+        Employee emp1 = new Employee(deptIT, "M'SADAA", "Youssef", Status.EMP);
+        Employee emp2 = new Employee(deptIT, "DEBBACH", "Ahmed", Status.EMP);
+        Employee emp3 = new Employee(deptIT, "RIANI", "Youssef", Status.EMP);
+        Employee emp4 = new Employee(deptIT, "BEN ABDA", "Mohamed Yassine", Status.EMP);
+        Employee emp5 = new Employee(deptIT, "EL YAHYAOUI", "Youssef", Status.EMP);
 
-        // 3. On établit les liens dans les listes
+        // 3. On établit les liens
         maCompagnie.addDepartment(deptIT);
         maCompagnie.addEmployee(emp1);
+        maCompagnie.addEmployee(emp2);
+        maCompagnie.addEmployee(emp3);
+        maCompagnie.addEmployee(emp4);
+        maCompagnie.addEmployee(emp5);
 
-        // Optionnel mais propre : ajouter l'employé à la liste interne du département
+        // On les ajoute aussi au département
         deptIT.addEmployee(emp1);
+        deptIT.addEmployee(emp2);
+        deptIT.addEmployee(emp3);
+        deptIT.addEmployee(emp4);
+        deptIT.addEmployee(emp5);
 
-        System.out.println("Données créées : " + emp1.getName() + " travaille au service " + emp1.getDepartment().getName());
+        System.out.println("✅ Données générées avec succès (5 employés).");
 
         System.out.println("\n=== 2. TEST DE SAUVEGARDE ===");
         PersistenceManager.saveData(maCompagnie);
@@ -38,17 +50,17 @@ public class TestBinaire {
 
         System.out.println("\n=== 4. VÉRIFICATION DE L'INTÉGRITÉ ===");
         if (compagnieChargee != null && !compagnieChargee.getEmployees().isEmpty()) {
-            Employee recup = compagnieChargee.getEmployees().get(0);
 
-            System.out.println("✅ Entreprise : " + compagnieChargee.getName());
-            System.out.println("✅ Employé récupéré : " + recup.getName() + " " + recup.getSurname());
+            System.out.println("🏢 Entreprise : " + compagnieChargee.getName());
+            System.out.println("👥 Nombre d'employés récupérés : " + compagnieChargee.getEmployees().size());
+            System.out.println("-------------------------------------------------");
 
-            // C'est ici qu'on voit si l'objet Department a bien été sauvegardé avec
-            if (recup.getDepartment() != null) {
-                System.out.println("✅ Département récupéré : " + recup.getDepartment().getName());
-            } else {
-                System.out.println("❌ Erreur : Le département est null !");
+            // ✅ On utilise une boucle pour afficher TOUT LE MONDE
+            for (Employee recup : compagnieChargee.getEmployees()) {
+                String nomDept = (recup.getDepartment() != null) ? recup.getDepartment().getName() : "Aucun";
+                System.out.println("👤 " + recup.getName() + " " + recup.getSurname() + " | Dpt: " + nomDept);
             }
+            System.out.println("-------------------------------------------------");
         }
     }
 }
