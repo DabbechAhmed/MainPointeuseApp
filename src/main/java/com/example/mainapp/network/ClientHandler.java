@@ -49,22 +49,36 @@ public class ClientHandler implements Runnable {
                 String type = cp.isCheckIn() ? "Entrée" : "Sortie";
                 System.out.println("📥 POINTAGE REÇU : " + type + " pour ID " + cp.getEmployeeId());
 
+                // --- 🚀 LOGIQUE F6 : DÉTECTION DES DOUBLONS ---
+                if (company.getCheckPoints() != null) {
+                    for (CheckPoint existant : company.getCheckPoints()) {
+                        // Si c'est le même employé, le même type (In/Out), ET le même jour :
+                        if (existant.getEmployeeId().equals(cp.getEmployeeId()) &&
+                                existant.isCheckIn() == cp.isCheckIn() &&
+                                existant.getTime().toLocalDate().equals(cp.getTime().toLocalDate())) {
+
+                            cp.setStatut("Incident : Doublon"); // 🔴 On marque le pointage
+                            System.out.println("⚠️ ALERTE : Double pointage détecté !");
+                            break; // On arrête la recherche, on a trouvé le doublon
+                        }
+                    }
+                }
+                // ----------------------------------------------
+
                 // 1. Ajouter le pointage à la mémoire de l'entreprise
                 company.addCheckPoint(cp);
 
                 // 2. Sauvegarder immédiatement sur le disque
                 PersistenceManager.saveData(company);
-                System.out.println("💾 Pointage sauvegardé avec succès.");
 
-                // ✅ 3. Dire à la pointeuse que c'est bon !
+                // 3. Dire à la pointeuse que c'est bon !
                 oos.writeObject("OK");
                 oos.flush();
 
-                // ✅ 4. MAGIE JAVAFX : Actualisation en temps réel de la table !
+                // 4. MAGIE JAVAFX : Actualisation en temps réel de la table !
                 Platform.runLater(() -> {
                     if (MainController.instance != null) {
                         MainController.instance.rafraichirUI();
-                        System.out.println("🔄 Interface graphique actualisée automatiquement !");
                     }
                 });
             }

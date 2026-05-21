@@ -31,6 +31,7 @@ public class MainController {
     @FXML private TableColumn<CheckPoint, String> colAttType;
     @FXML private TableColumn<CheckPoint, String> colAttDate;
     @FXML private TableColumn<CheckPoint, String> colAttHeure;
+    @FXML private TableColumn<CheckPoint, String> colAttStatut;
 
     // Avertissements normaux
     @FXML private TextField searchField;
@@ -69,7 +70,8 @@ public class MainController {
         colAttType.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().isCheckIn() ? "Entrée" : "Sortie"));
         colAttDate.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getTime().toLocalDate().toString()));
         colAttHeure.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getTime().toLocalTime().toString()));
-
+        // ✅ Liaison de la nouvelle colonne pour afficher le statut "Normal" ou "Incident : Doublon"
+        colAttStatut.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getStatut()));
         // Charger les données initiales
         loadDataIntoTables();
     }

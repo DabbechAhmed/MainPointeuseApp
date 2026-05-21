@@ -75,12 +75,12 @@
                         <TableView fx:id="attendanceTable" prefHeight="400.0">
                             <columns>
                                 <TableColumn fx:id="colAttEmpId" text="ID Employé" prefWidth="100"/>
-
                                 <TableColumn fx:id="colAttEmpNom" text="Nom Employé" prefWidth="150"/>
-
                                 <TableColumn fx:id="colAttType" text="Type (In/Out)" prefWidth="100"/>
                                 <TableColumn fx:id="colAttDate" text="Date" prefWidth="120"/>
                                 <TableColumn fx:id="colAttHeure" text="Heure Pointage" prefWidth="150"/>
+
+                                <TableColumn fx:id="colAttStatut" text="Statut" prefWidth="150"/>
                             </columns>
                         </TableView>
                     </center>
