@@ -8,12 +8,15 @@ public class CheckPoint implements Serializable {
 
     private final UUID employeeId;
     private final LocalDateTime time;
+    private final boolean isCheckIn;
 
-    public CheckPoint(UUID employeeId, LocalDateTime time) {
+    public CheckPoint(UUID employeeId, LocalDateTime time, boolean isCheckIn) {
         this.employeeId = employeeId;
         this.time = time;
+        this.isCheckIn = isCheckIn;
     }
 
     public UUID getEmployeeId() { return employeeId; }
     public LocalDateTime getTime() { return time; }
+    public boolean isCheckIn() { return isCheckIn; }
 }

@@ -2,7 +2,9 @@ package com.example.mainapp.network;
 
 import com.example.mainapp.model.Company;
 import com.example.mainapp.model.Employee;
-import com.example.dto.EmployeeDTO; // ✅ Import du DTO
+import com.example.dto.EmployeeDTO;
+import com.example.dto.CheckPoint; // ✅ Import du CheckPoint
+import com.example.mainapp.service.PersistenceManager; // ✅ Import pour la sauvegarde
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -27,29 +29,31 @@ public class ClientHandler implements Runnable {
 
             Object input = ois.readObject();
 
-            // 1. Traiter la demande de récupération des employés
             if (input instanceof String && ((String) input).equals("GET_EMPLOYEES")) {
                 System.out.println("📥 Requête 'GET_EMPLOYEES' reçue d'un client.");
-
-                // ✅ Création de la liste allégée (DTO)
                 List<EmployeeDTO> listeDTO = new ArrayList<>();
-
                 for (Employee emp : company.getEmployees()) {
                     String nomComplet = emp.getName() + " " + emp.getSurname();
                     listeDTO.add(new EmployeeDTO(emp.getId(), nomComplet));
                 }
-
-                // Envoi exclusif des DTOs sur le réseau
                 oos.writeObject(listeDTO);
                 oos.flush();
                 System.out.println("📤 Liste de " + listeDTO.size() + " DTOs envoyée au client.");
             }
 
-            // 2. Traiter la réception d'un pointage (CheckPoint) plus tard
-            /* else if (input instanceof CheckPoint) {
+            // ✅ NOUVEAU : Traiter la réception d'un pointage
+            else if (input instanceof CheckPoint) {
                 CheckPoint cp = (CheckPoint) input;
-                // company.ajouterPointage(cp.getEmployeeId(), cp.getTime());
-            } */
+                String type = cp.isCheckIn() ? "Entrée" : "Sortie";
+                System.out.println("📥 POINTAGE REÇU : " + type + " pour ID " + cp.getEmployeeId());
+
+                // 1. Ajouter le pointage à la mémoire de l'entreprise
+                company.addCheckPoint(cp);
+
+                // 2. Sauvegarder immédiatement sur le disque
+                PersistenceManager.saveData(company);
+                System.out.println("💾 Pointage sauvegardé avec succès.");
+            }
 
         } catch (Exception e) {
             System.err.println("❌ Erreur lors du traitement avec un client : " + e.getMessage());

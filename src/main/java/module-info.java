@@ -12,6 +12,7 @@ module com.example.mainapp {
     requires com.almasb.fxgl.all;
 
     opens com.example.mainapp to javafx.fxml;
+    opens com.example.dto to javafx.base;
     exports com.example.mainapp;
     exports com.example.mainapp.controller;
     opens com.example.mainapp.controller to javafx.fxml;

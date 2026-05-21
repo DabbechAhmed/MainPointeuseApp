@@ -1,5 +1,7 @@
 package com.example.mainapp.model;
 
+import com.example.dto.CheckPoint;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -8,16 +10,14 @@ import java.util.UUID;
 
 public class Company implements Serializable {
 
-    // Le passeport de sérialisation dont on a parlé !
     @Serial
     private static final long serialVersionUID = 1L;
 
     private String name;
 
-    // On utilise des interfaces (List) pour le type,
-    // mais on instanciera des ArrayList dans le constructeur
     private List<Employee> employees;
     private List<Department> departments;
+    private List<CheckPoint> checkPoints;
 
     /**
      * Constructeur par défaut.
@@ -28,6 +28,21 @@ public class Company implements Serializable {
         this.name = name;
         this.employees = new ArrayList<>();
         this.departments = new ArrayList<>();
+        this.checkPoints = new ArrayList<>();
+    }
+
+    // ==========================================
+    // MÉTHODES DE GESTION DES POINTAGES (NOUVEAU)
+    // ==========================================
+
+    public void addCheckPoint(CheckPoint cp) {
+        if (cp != null) {
+            this.checkPoints.add(cp);
+        }
+    }
+
+    public List<CheckPoint> getCheckPoints() {
+        return checkPoints;
     }
 
     // ==========================================
@@ -41,8 +56,6 @@ public class Company implements Serializable {
     }
 
     public void removeEmployee(UUID id) {
-        // La méthode removeIf est très pratique en Java moderne
-        // Elle parcourt la liste et supprime l'élément si l'ID correspond
         this.employees.removeIf(emp -> emp.getId().equals(id));
     }
 
@@ -52,7 +65,7 @@ public class Company implements Serializable {
                 return emp;
             }
         }
-        return null; // Retourne null si l'employé n'existe pas
+        return null;
     }
 
     // ==========================================
