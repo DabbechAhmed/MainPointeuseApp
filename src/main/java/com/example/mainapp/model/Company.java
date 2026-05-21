@@ -68,10 +68,6 @@ public class Company implements Serializable {
         return null;
     }
 
-    // ==========================================
-    // MÉTHODES DE GESTION DES DÉPARTEMENTS
-    // ==========================================
-
     public void addDepartment(Department dept) {
         if (dept != null && !this.departments.contains(dept)) {
             this.departments.add(dept);

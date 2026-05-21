@@ -1,10 +1,12 @@
 package com.example.mainapp.network;
 
+import com.example.mainapp.controller.MainController;
 import com.example.mainapp.model.Company;
 import com.example.mainapp.model.Employee;
 import com.example.dto.EmployeeDTO;
 import com.example.dto.CheckPoint; // ✅ Import du CheckPoint
 import com.example.mainapp.service.PersistenceManager; // ✅ Import pour la sauvegarde
+import javafx.application.Platform;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -53,6 +55,18 @@ public class ClientHandler implements Runnable {
                 // 2. Sauvegarder immédiatement sur le disque
                 PersistenceManager.saveData(company);
                 System.out.println("💾 Pointage sauvegardé avec succès.");
+
+                // ✅ 3. Dire à la pointeuse que c'est bon !
+                oos.writeObject("OK");
+                oos.flush();
+
+                // ✅ 4. MAGIE JAVAFX : Actualisation en temps réel de la table !
+                Platform.runLater(() -> {
+                    if (MainController.instance != null) {
+                        MainController.instance.rafraichirUI();
+                        System.out.println("🔄 Interface graphique actualisée automatiquement !");
+                    }
+                });
             }
 
         } catch (Exception e) {

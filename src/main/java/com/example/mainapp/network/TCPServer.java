@@ -12,9 +12,13 @@ public class TCPServer implements Runnable {
     private int port = 8080;
     private boolean isRunning = false;
     private ServerSocket serverSocket;
-    private Company company; // ✅ Stockage de la référence de l'entreprise
+    private Company company;
 
     private TCPServer() {
+    }
+
+    public Company getCompany() {
+        return this.company;
     }
 
     public static synchronized TCPServer getInstance() {
@@ -24,7 +28,6 @@ public class TCPServer implements Runnable {
         return instance;
     }
 
-    // ✅ La méthode accepte maintenant la Company
     public void demarrer(int port, Company company) {
         if (!isRunning) {
             this.port = port;

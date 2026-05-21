@@ -3,6 +3,7 @@ package com.example.mainapp.controller;
 import com.example.mainapp.model.Company;
 import com.example.mainapp.model.Employee;
 import com.example.dto.CheckPoint;
+import com.example.mainapp.network.TCPServer;
 import com.example.mainapp.service.PersistenceManager;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -14,24 +15,26 @@ import java.util.List;
 
 public class MainController {
 
-    // ✅ Déclaration typée des tables et des colonnes (Employés)
+    // ✅ 1. DÉCLARATION DU PONT STATIQUE : Accessible de partout dans l'app
+    public static MainController instance;
+
+    // Déclaration typée des tables et des colonnes (Employés)
     @FXML private TableView<Employee> employeeTable;
     @FXML private TableColumn<Employee, String> colEmpId;
     @FXML private TableColumn<Employee, String> colEmpNom;
     @FXML private TableColumn<Employee, String> colEmpPrenom;
 
-    // ✅ Déclaration typée des tables et des colonnes (Pointages)
+    // Déclaration typée des tables et des colonnes (Pointages)
     @FXML private TableView<CheckPoint> attendanceTable;
     @FXML private TableColumn<CheckPoint, String> colAttEmpId;
-    @FXML private TableColumn<CheckPoint, String> colAttEmpNom; // ✅ L'OUBLI ÉTAIT ICI !
+    @FXML private TableColumn<CheckPoint, String> colAttEmpNom;
     @FXML private TableColumn<CheckPoint, String> colAttType;
     @FXML private TableColumn<CheckPoint, String> colAttDate;
     @FXML private TableColumn<CheckPoint, String> colAttHeure;
 
-    // Avertissements normaux (à utiliser plus tard)
+    // Avertissements normaux
     @FXML private TextField searchField;
     @FXML private DatePicker dateFilter;
-
     @FXML private Label statusLabel;
     @FXML private Label employeeCountLabel;
 
@@ -39,6 +42,9 @@ public class MainController {
 
     @FXML
     public void initialize() {
+        // ✅ 2. INITIALISATION DU PONT : Dès que la fenêtre s'ouvre, elle s'enregistre ici
+        instance = this;
+
         statusLabel.setText("Application démarrée");
 
         // Lier les colonnes des employés
@@ -49,18 +55,13 @@ public class MainController {
         // Lier les colonnes des pointages
         colAttEmpId.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getEmployeeId().toString()));
 
-        // Jointure dynamique : On cherche l'employé par son ID pour afficher son Nom complet
+        // Jointure dynamique
         colAttEmpNom.setCellValueFactory(cellData -> {
             CheckPoint pointageActuel = cellData.getValue();
-
-            // Recherche de l'employé associé dans la base de données du serveur
             Employee emp = company.findEmployeeById(pointageActuel.getEmployeeId());
-
             if (emp != null) {
-                // Si l'employé existe, on retourne "Nom Prénom"
                 return new SimpleStringProperty(emp.getName() + " " + emp.getSurname());
             } else {
-                // Sécurité si l'employé a été supprimé entre-temps
                 return new SimpleStringProperty("Employé inconnu");
             }
         });
@@ -73,19 +74,21 @@ public class MainController {
         loadDataIntoTables();
     }
 
+    // ✅ 3. MÉTHODE PUBLIQUE POUR LE SERVEUR : Le ClientHandler appellera cette méthode
+    public void rafraichirUI() {
+        loadDataIntoTables();
+    }
+
     // Charge les données en mémoire et met à jour l'UI
     private void loadDataIntoTables() {
-        company = PersistenceManager.loadData();
-        if (company == null) {
-            company = new Company("Polytech Tours");
-        }
+        this.company = TCPServer.getInstance().getCompany();
 
-        // Remplir tableau employés
+        if (this.company == null) return;
+
         ObservableList<Employee> empList = FXCollections.observableArrayList(company.getEmployees());
         employeeTable.setItems(empList);
         employeeCountLabel.setText("Employés: " + empList.size());
 
-        // Remplir tableau pointages (avec sécurité anti-null au cas où)
         List<CheckPoint> listePointages = company.getCheckPoints();
         if (listePointages == null) {
             listePointages = new java.util.ArrayList<>();
@@ -101,7 +104,6 @@ public class MainController {
         System.out.println("Données rafraîchies");
     }
 
-    // --- Reste du code inchangé ---
     @FXML protected void handleAddEmployee() { System.out.println("Add Employee clicked"); }
     @FXML protected void handleDeleteEmployee() { System.out.println("Delete Employee clicked"); }
     @FXML protected void handleEditEmployee() { System.out.println("Edit Employee clicked"); }
