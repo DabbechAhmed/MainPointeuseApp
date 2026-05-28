@@ -10,7 +10,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
-
+import com.example.mainapp.utils.ConfigManager;
 import java.util.List;
 
 public class MainController {
@@ -27,7 +27,10 @@ public class MainController {
     @FXML private VBox viewPointages;
 
     @FXML private EmployeeController viewEmployeesController;
-    @FXML private DepartmentController viewDepartmentsController; // ✅ NOUVEAU
+    @FXML private DepartmentController viewDepartmentsController;
+
+
+    // ✅ NOUVEAU
 
     // ========================================================
     // 📊 ÉLÉMENTS DE L'INTERFACE (Pointages uniquement)
@@ -44,10 +47,19 @@ public class MainController {
     @FXML private Label statusLabel;
     @FXML private Label employeeCountLabel;
 
+    @FXML private VBox viewSettings;
+    @FXML private TextField serverPortField;
+    @FXML private TextField toleranceField;
+
+    private ConfigManager config;
+
     @FXML
     public void initialize() {
         instance = this;
         statusLabel.setText("Application démarrée");
+        this.config = new ConfigManager();
+        serverPortField.setText(String.valueOf(config.getServerPort()));
+        toleranceField.setText(String.valueOf(config.getToleranceMinutes()));
 
         colAttEmpId.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getEmployeeId().toString()));
         colAttEmpNom.setCellValueFactory(cellData -> {
@@ -95,8 +107,9 @@ public class MainController {
     private void cacherToutesLesVues() {
         if (viewDashboard != null) viewDashboard.setVisible(false);
         if (viewEmployees != null) viewEmployees.setVisible(false);
-        if (viewDepartments != null) viewDepartments.setVisible(false); // ✅ NOUVEAU
+        if (viewDepartments != null) viewDepartments.setVisible(false);
         if (viewPointages != null) viewPointages.setVisible(false);
+        if (viewSettings != null) viewSettings.setVisible(false);
     }
 
     @FXML
@@ -134,4 +147,29 @@ public class MainController {
     protected void handleFilterAttendance() {
         System.out.println("Action : Filtrer les pointages");
     }
+    @FXML
+    protected void showSettings() {
+        cacherToutesLesVues(); // On cache proprement tout le reste
+        if (viewSettings != null) viewSettings.setVisible(true); // On affiche les paramètres
+    }
+
+    @FXML
+    protected void handleSaveSettings() {
+        try {
+            int port = Integer.parseInt(serverPortField.getText());
+            int tolerance = Integer.parseInt(toleranceField.getText());
+
+            config.setServerPort(port);
+            config.setToleranceMinutes(tolerance);
+            config.saveConfig();
+
+            Alert alert = new Alert(Alert.AlertType.INFORMATION, "✅ Paramètres sauvegardés avec succès ! \n(Le changement de port nécessite un redémarrage du serveur)");
+            alert.showAndWait();
+
+        } catch (NumberFormatException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR, "❌ Le port et la tolérance doivent être des nombres entiers !");
+            alert.showAndWait();
+        }
+    }
+
 }
