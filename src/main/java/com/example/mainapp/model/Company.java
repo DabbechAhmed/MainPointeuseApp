@@ -1,7 +1,5 @@
 package com.example.mainapp.model;
 
-import com.example.dto.CheckPoint;
-
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -17,7 +15,9 @@ public class Company implements Serializable {
 
     private List<Employee> employees;
     private List<Department> departments;
-    private List<CheckPoint> checkPoints;
+
+    // ✅ Remplacement par le modèle métier
+    private List<AttendanceRecord> attendanceRecords;
 
     /**
      * Constructeur par défaut.
@@ -28,21 +28,21 @@ public class Company implements Serializable {
         this.name = name;
         this.employees = new ArrayList<>();
         this.departments = new ArrayList<>();
-        this.checkPoints = new ArrayList<>();
+        this.attendanceRecords = new ArrayList<>(); // ✅ Initialisation de la nouvelle liste
     }
 
     // ==========================================
-    // MÉTHODES DE GESTION DES POINTAGES (NOUVEAU)
+    // MÉTHODES DE GESTION DES POINTAGES
     // ==========================================
 
-    public void addCheckPoint(CheckPoint cp) {
-        if (cp != null) {
-            this.checkPoints.add(cp);
+    public void addAttendanceRecord(AttendanceRecord record) {
+        if (record != null) {
+            this.attendanceRecords.add(record);
         }
     }
 
-    public List<CheckPoint> getCheckPoints() {
-        return checkPoints;
+    public List<AttendanceRecord> getAttendanceRecords() {
+        return attendanceRecords;
     }
 
     // ==========================================
@@ -67,6 +67,10 @@ public class Company implements Serializable {
         }
         return null;
     }
+
+    // ==========================================
+    // MÉTHODES DE GESTION DES DÉPARTEMENTS
+    // ==========================================
 
     public void addDepartment(Department dept) {
         if (dept != null && !this.departments.contains(dept)) {

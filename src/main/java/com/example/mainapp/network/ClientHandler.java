@@ -3,9 +3,10 @@ package com.example.mainapp.network;
 import com.example.mainapp.controller.MainController;
 import com.example.mainapp.model.Company;
 import com.example.mainapp.model.Employee;
+import com.example.mainapp.model.AttendanceRecord; // ✅ Le nouveau modèle métier
 import com.example.dto.EmployeeDTO;
-import com.example.dto.CheckPoint; // ✅ Import du CheckPoint
-import com.example.mainapp.service.PersistenceManager; // ✅ Import pour la sauvegarde
+import com.example.dto.CheckPoint; // ✅ Le DTO qui voyage sur le réseau
+import com.example.mainapp.service.PersistenceManager;
 import javafx.application.Platform;
 
 import java.io.ObjectInputStream;
@@ -43,44 +44,56 @@ public class ClientHandler implements Runnable {
                 System.out.println("📤 Liste de " + listeDTO.size() + " DTOs envoyée au client.");
             }
 
-            // ✅ NOUVEAU : Traiter la réception d'un pointage
+            // ✅ RÉCEPTION DU DTO
             else if (input instanceof CheckPoint) {
                 CheckPoint cp = (CheckPoint) input;
                 String type = cp.isCheckIn() ? "Entrée" : "Sortie";
-                System.out.println("📥 POINTAGE REÇU : " + type + " pour ID " + cp.getEmployeeId());
+                System.out.println("📥 POINTAGE DTO REÇU : " + type + " pour ID " + cp.getEmployeeId());
 
-                // --- 🚀 LOGIQUE F6 : DÉTECTION DES DOUBLONS ---
-                if (company.getCheckPoints() != null) {
-                    for (CheckPoint existant : company.getCheckPoints()) {
-                        // Si c'est le même employé, le même type (In/Out), ET le même jour :
-                        if (existant.getEmployeeId().equals(cp.getEmployeeId()) &&
-                                existant.isCheckIn() == cp.isCheckIn() &&
-                                existant.getTime().toLocalDate().equals(cp.getTime().toLocalDate())) {
+                // 1. 🔄 TRADUCTION : On cherche le vrai employé à partir de l'UUID
+                Employee emp = company.findEmployeeById(cp.getEmployeeId());
 
-                            cp.setStatut("Incident : Doublon"); // 🔴 On marque le pointage
-                            System.out.println("⚠️ ALERTE : Double pointage détecté !");
-                            break; // On arrête la recherche, on a trouvé le doublon
+                if (emp == null) {
+                    System.err.println("❌ Erreur : Pointage refusé, employé introuvable !");
+                    oos.writeObject("ERROR: Employé inconnu");
+                    oos.flush();
+                } else {
+                    // 2. CRÉATION DU VRAI MODÈLE MÉTIER
+                    AttendanceRecord record = new AttendanceRecord(emp, cp.getTime(), cp.isCheckIn());
+
+                    // --- 🚀 LOGIQUE F6 : DÉTECTION DES DOUBLONS ---
+                    if (company.getAttendanceRecords() != null) {
+                        for (AttendanceRecord existant : company.getAttendanceRecords()) {
+                            // On compare maintenant directement les objets Employee (ou leurs IDs)
+                            if (existant.getEmployee().getId().equals(record.getEmployee().getId()) &&
+                                    existant.isCheckIn() == record.isCheckIn() &&
+                                    existant.getTime().toLocalDate().equals(record.getTime().toLocalDate())) {
+
+                                record.setStatus("Incident : Doublon"); // 🔴 On marque le pointage
+                                System.out.println("⚠️ ALERTE : Double pointage détecté pour " + emp.getName() + " !");
+                                break;
+                            }
                         }
                     }
+                    // ----------------------------------------------
+
+                    // 3. Ajouter le pointage à la mémoire de l'entreprise (Méthode à renommer dans Company)
+                    company.addAttendanceRecord(record);
+
+                    // 4. Sauvegarder immédiatement sur le disque
+                    PersistenceManager.saveData(company);
+
+                    // 5. Dire à la pointeuse que c'est bon !
+                    oos.writeObject("OK");
+                    oos.flush();
+
+                    // 6. MAGIE JAVAFX : Actualisation en temps réel de la table !
+                    Platform.runLater(() -> {
+                        if (MainController.instance != null) {
+                            MainController.instance.rafraichirUI();
+                        }
+                    });
                 }
-                // ----------------------------------------------
-
-                // 1. Ajouter le pointage à la mémoire de l'entreprise
-                company.addCheckPoint(cp);
-
-                // 2. Sauvegarder immédiatement sur le disque
-                PersistenceManager.saveData(company);
-
-                // 3. Dire à la pointeuse que c'est bon !
-                oos.writeObject("OK");
-                oos.flush();
-
-                // 4. MAGIE JAVAFX : Actualisation en temps réel de la table !
-                Platform.runLater(() -> {
-                    if (MainController.instance != null) {
-                        MainController.instance.rafraichirUI();
-                    }
-                });
             }
 
         } catch (Exception e) {

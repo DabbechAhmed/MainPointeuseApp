@@ -51,7 +51,7 @@
 
             <fx:include source="department-view.fxml" fx:id="viewDepartments" visible="false" />
 
-            <fx:include source="pointage-view.fxml" fx:id="viewPointages" visible="false" />
+            <fx:include source="attendance-view.fxml" fx:id="viewPointages" visible="false" />
 
             <VBox fx:id="viewSettings" spacing="20" visible="false">
                 <Label text="Paramètres de l'application (F5)" styleClass="section-title"/>

@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.*?>
 
 <VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.example.mainapp.controller.PointageController"
+      fx:controller="com.example.mainapp.controller.AttendanceController"
       spacing="20" styleClass="page-content">
 
     <HBox alignment="CENTER_LEFT" spacing="20">

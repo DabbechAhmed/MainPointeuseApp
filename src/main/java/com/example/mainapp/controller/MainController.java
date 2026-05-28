@@ -25,7 +25,7 @@ public class MainController {
     // ✅ Sous-contrôleurs injectés
     @FXML private EmployeeController viewEmployeesController;
     @FXML private DepartmentController viewDepartmentsController;
-    @FXML private PointageController viewPointagesController; // ✅ NOUVEAU
+    @FXML private AttendanceController viewPointagesController; // ✅ NOUVEAU
 
     // ========================================================
     // 📊 ÉLÉMENTS DE L'INTERFACE (Dashboard & Paramètres)
