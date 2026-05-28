@@ -112,6 +112,7 @@ public class EmployeeController {
         if (company != null) {
             ObservableList<Employee> empList = FXCollections.observableArrayList(company.getEmployees());
             employeeTable.setItems(empList);
+            employeeTable.refresh();
         }
     }
 
