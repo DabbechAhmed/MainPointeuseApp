@@ -51,26 +51,7 @@
 
             <fx:include source="department-view.fxml" fx:id="viewDepartments" visible="false" />
 
-            <VBox fx:id="viewPointages" spacing="20" visible="false">
-                <HBox alignment="CENTER_LEFT" spacing="20">
-                    <Label text="Historique des pointages" styleClass="section-title"/>
-                    <Region HBox.hgrow="ALWAYS" />
-                    <Label text="Filtrer par date:"/>
-                    <DatePicker fx:id="dateFilter"/>
-                    <Button text="Appliquer" onAction="#handleFilterAttendance" styleClass="btn-primary"/>
-                </HBox>
-
-                <TableView fx:id="attendanceTable" VBox.vgrow="ALWAYS">
-                    <columns>
-                        <TableColumn fx:id="colAttEmpId" text="ID Employé" prefWidth="100"/>
-                        <TableColumn fx:id="colAttEmpNom" text="Nom Employé" prefWidth="150"/>
-                        <TableColumn fx:id="colAttType" text="Type (In/Out)" prefWidth="100"/>
-                        <TableColumn fx:id="colAttDate" text="Date" prefWidth="120"/>
-                        <TableColumn fx:id="colAttHeure" text="Heure Pointage" prefWidth="150"/>
-                        <TableColumn fx:id="colAttStatut" text="Statut" prefWidth="150"/>
-                    </columns>
-                </TableView>
-            </VBox>
+            <fx:include source="pointage-view.fxml" fx:id="viewPointages" visible="false" />
 
             <VBox fx:id="viewSettings" spacing="20" visible="false">
                 <Label text="Paramètres de l'application (F5)" styleClass="section-title"/>
