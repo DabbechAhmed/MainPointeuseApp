@@ -3,6 +3,7 @@ package com.example.mainapp;
 import com.example.mainapp.model.Company;
 import com.example.mainapp.network.TCPServer;
 import com.example.mainapp.service.PersistenceManager;
+import com.example.mainapp.utils.ConfigManager;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -23,7 +24,12 @@ public class MainApplication extends Application {
         }
 
         // 2. Démarrage du serveur TCP sur le port 8080 en lui donnant les données chargées
-        TCPServer.getInstance().demarrer(8080, maCompagnie);
+
+        // Charger la configuration
+        ConfigManager config = new ConfigManager();
+
+        // Démarrer le serveur TCP sur le port configuré
+        TCPServer.getInstance().demarrer(config.getServerPort(), maCompagnie);
 
         // 3. Chargement de l'interface graphique
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/com/example/mainapp/view/main-view.fxml"));
