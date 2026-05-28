@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.example.mainapp.controller.AttendanceFormController"
+      spacing="20" styleClass="page-container" prefWidth="450">
+
+    <padding>
+        <Insets top="20" right="30" bottom="20" left="30"/>
+    </padding>
+
+    <Label fx:id="titleLabel" text="Détails du pointage" styleClass="header-title" maxWidth="Infinity" alignment="CENTER"/>
+
+    <GridPane hgap="15" vgap="15">
+        <columnConstraints>
+            <ColumnConstraints minWidth="120" />
+            <ColumnConstraints hgrow="ALWAYS" />
+        </columnConstraints>
+
+        <Label text="Employé :" GridPane.rowIndex="0" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+        <ComboBox fx:id="employeeComboBox" GridPane.rowIndex="0" GridPane.columnIndex="1" maxWidth="Infinity" promptText="Sélectionner un employé..."/>
+
+        <Label text="Type de pointage :" GridPane.rowIndex="1" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+        <ComboBox fx:id="typeComboBox" GridPane.rowIndex="1" GridPane.columnIndex="1" maxWidth="Infinity"/>
+
+        <Label text="Date :" GridPane.rowIndex="2" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+        <DatePicker fx:id="datePicker" GridPane.rowIndex="2" GridPane.columnIndex="1" maxWidth="Infinity"/>
+
+        <Label text="Heure (HH:mm) :" GridPane.rowIndex="3" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+        <TextField fx:id="heureField" GridPane.rowIndex="3" GridPane.columnIndex="1" promptText="ex: 08:30"/>
+    </GridPane>
+
+    <Region VBox.vgrow="ALWAYS" />
+
+    <HBox spacing="15" alignment="CENTER_RIGHT">
+        <Button fx:id="btnDelete" text="Supprimer" onAction="#handleDelete" style="-fx-background-color: #ff4d4d; -fx-text-fill: white; -fx-background-radius: 5;"/>
+        <Region HBox.hgrow="ALWAYS" />
+        <Button text="Annuler" onAction="#handleCancel" style="-fx-background-color: #e0e0e0; -fx-background-radius: 5;"/>
+        <Button text="Enregistrer" onAction="#handleSave" styleClass="btn-primary"/>
+    </HBox>
+
+</VBox>

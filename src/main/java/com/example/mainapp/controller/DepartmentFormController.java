@@ -76,6 +76,7 @@ public class DepartmentFormController {
                 error.showAndWait();
             }
         }
+
     }
 
     @FXML

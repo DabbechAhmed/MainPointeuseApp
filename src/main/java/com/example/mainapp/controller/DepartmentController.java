@@ -66,6 +66,7 @@ public class DepartmentController {
         if (company != null && company.getDepartments() != null) {
             ObservableList<Department> deptList = FXCollections.observableArrayList(company.getDepartments());
             departmentTable.setItems(deptList);
+            departmentTable.refresh();
         }
     }
 

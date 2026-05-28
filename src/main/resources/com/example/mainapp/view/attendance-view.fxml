@@ -12,7 +12,8 @@
         <Region HBox.hgrow="ALWAYS" />
         <Label text="Filtrer par date:"/>
         <DatePicker fx:id="dateFilter"/>
-        <Button text="Appliquer" onAction="#handleFilterAttendance" styleClass="btn-primary"/>
+        <Button text="Appliquer" onAction="#handleFilterAttendance" styleClass="btn-secondary"/>
+        <Button text="+ Add new" onAction="#handleAddAttendance" styleClass="btn-primary"/>
     </HBox>
 
     <TableView fx:id="attendanceTable" VBox.vgrow="ALWAYS">
