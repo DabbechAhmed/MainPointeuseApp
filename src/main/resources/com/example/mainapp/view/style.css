@@ -124,3 +124,12 @@
 .table-column {
     -fx-alignment: CENTER;
 }
+
+
+.menu-button.active {
+    -fx-background-color: #d0e4ff; /* Un fond bleuté très léger, ajuste selon tes goûts */
+    -fx-text-fill: #0056b3;        /* Texte bleu foncé */
+    -fx-font-weight: bold;
+    -fx-border-color: #007bff;     /* La couleur de la barre latérale */
+    -fx-border-width: 0 0 0 5;     /* Affiche une bordure de 5px uniquement à gauche */
+}

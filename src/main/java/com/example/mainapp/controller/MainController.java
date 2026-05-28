@@ -20,21 +20,30 @@ public class MainController {
     @FXML private VBox viewEmployees;
     @FXML private VBox viewDepartments;
     @FXML private VBox viewPointages;
-    @FXML private VBox viewSettings; // ✅ NOUVEAU
+    @FXML private VBox viewSettings;
 
     // ✅ Sous-contrôleurs injectés
     @FXML private EmployeeController viewEmployeesController;
     @FXML private DepartmentController viewDepartmentsController;
-    @FXML private AttendanceController viewPointagesController; // ✅ NOUVEAU
+    @FXML private AttendanceController viewPointagesController;
 
     // ========================================================
     // 📊 ÉLÉMENTS DE L'INTERFACE (Dashboard & Paramètres)
     // ========================================================
     @FXML private Label statusLabel;
     @FXML private Label employeeCountLabel;
+    @FXML private Label pointagesTodayLabel;
+    @FXML private Label incidentsLabel;
 
     @FXML private TextField serverPortField;
     @FXML private TextField toleranceField;
+
+    // ✅ BOUTONS DU MENU
+    @FXML private Button btnDashboard;
+    @FXML private Button btnEmployees;
+    @FXML private Button btnDepartments;
+    @FXML private Button btnPointages;
+    @FXML private Button btnSettings;
 
     @FXML
     public void initialize() {
@@ -54,23 +63,72 @@ public class MainController {
         loadDataIntoTables();
     }
 
+    // ========================================================
+    // 📈 LOGIQUE DU DASHBOARD
+    // ========================================================
+    public void rafraichirDashboard() {
+        this.company = TCPServer.getInstance().getCompany();
+        if (this.company == null) return;
+
+        if (employeeCountLabel != null) {
+            employeeCountLabel.setText(String.valueOf(company.getEmployees().size()));
+        }
+
+        java.time.LocalDate aujourdhui = java.time.LocalDate.now();
+        int countPointages = 0;
+        int countIncidents = 0;
+
+        if (company.getAttendanceRecords() != null) {
+            for (com.example.mainapp.model.AttendanceRecord record : company.getAttendanceRecords()) {
+                if (record == null || record.getTime() == null) continue;
+
+                if (record.getTime().toLocalDate().equals(aujourdhui)) {
+                    countPointages++;
+                    String status = record.getStatus() != null ? record.getStatus().toLowerCase() : "";
+                    if (status.contains("incident") || status.contains("retard")) {
+                        countIncidents++;
+                    }
+                }
+            }
+        }
+
+        if (pointagesTodayLabel != null) {
+            pointagesTodayLabel.setText(String.valueOf(countPointages));
+        }
+        if (incidentsLabel != null) {
+            incidentsLabel.setText(String.valueOf(countIncidents));
+        }
+    }
+
     private void loadDataIntoTables() {
         this.company = TCPServer.getInstance().getCompany();
         if (this.company == null) return;
 
-        // ✅ Le MainController délègue tout l'affichage aux sous-contrôleurs !
         if (viewEmployeesController != null) viewEmployeesController.rafraichirTableau();
         if (viewDepartmentsController != null) viewDepartmentsController.rafraichirTableau();
         if (viewPointagesController != null) viewPointagesController.rafraichirTableau();
 
-        // Mise à jour des stats du Dashboard
-        employeeCountLabel.setText(String.valueOf(company.getEmployees().size()));
+        rafraichirDashboard();
     }
 
     // ========================================================
-    // 🧭 NAVIGATION (MÉTHODE OPTIMISÉE)
+    // 🧭 NAVIGATION (CORRIGÉE)
     // ========================================================
-    private void switchView(VBox viewToActivate) {
+
+    private void setActiveButton(Button clickedButton) {
+        // Sécurité ajoutée : on vérifie que les boutons ne sont pas nuls avant de changer leur style
+        if (btnDashboard != null) btnDashboard.getStyleClass().remove("active");
+        if (btnEmployees != null) btnEmployees.getStyleClass().remove("active");
+        if (btnDepartments != null) btnDepartments.getStyleClass().remove("active");
+        if (btnPointages != null) btnPointages.getStyleClass().remove("active");
+        if (btnSettings != null) btnSettings.getStyleClass().remove("active");
+
+        if (clickedButton != null && !clickedButton.getStyleClass().contains("active")) {
+            clickedButton.getStyleClass().add("active");
+        }
+    }
+
+    private void switchView(VBox viewToActivate, Button activeBtn) {
         if (viewDashboard != null) viewDashboard.setVisible(false);
         if (viewEmployees != null) viewEmployees.setVisible(false);
         if (viewDepartments != null) viewDepartments.setVisible(false);
@@ -78,13 +136,20 @@ public class MainController {
         if (viewSettings != null) viewSettings.setVisible(false);
 
         if (viewToActivate != null) viewToActivate.setVisible(true);
+
+        setActiveButton(activeBtn);
     }
 
-    @FXML protected void showDashboard() { switchView(viewDashboard); }
-    @FXML protected void showEmployees() { switchView(viewEmployees); }
-    @FXML protected void showDepartments() { switchView(viewDepartments); }
-    @FXML protected void showPointages() { switchView(viewPointages); }
-    @FXML protected void showSettings() { switchView(viewSettings); }
+    @FXML
+    protected void showDashboard() {
+        rafraichirDashboard();
+        switchView(viewDashboard, btnDashboard);
+    }
+
+    @FXML protected void showEmployees() { switchView(viewEmployees, btnEmployees); }
+    @FXML protected void showDepartments() { switchView(viewDepartments, btnDepartments); }
+    @FXML protected void showPointages() { switchView(viewPointages, btnPointages); }
+    @FXML protected void showSettings() { switchView(viewSettings, btnSettings); }
 
     // ========================================================
     // ⚙️ ACTIONS DIVERSES
@@ -92,7 +157,7 @@ public class MainController {
     @FXML
     protected void handleRefresh() {
         statusLabel.setText("Rafraîchissement des données...");
-        loadDataIntoTables();
+        rafraichirUI();
     }
 
     @FXML

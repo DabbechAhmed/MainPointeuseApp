@@ -2,24 +2,26 @@ package com.example.mainapp.service;
 
 import com.example.mainapp.model.AttendanceRecord;
 import com.example.mainapp.model.Company;
+import com.example.mainapp.model.Employee;
+import com.example.mainapp.model.TimeSlot;
 import com.example.mainapp.network.TCPServer;
+import com.example.mainapp.utils.ConfigManager;
 
+import java.time.DayOfWeek;
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 public class AttendanceService {
 
-    // 1. Instance unique (Singleton)
     private static AttendanceService instance;
-
     private final Company company;
 
-    // 2. Constructeur privé
     private AttendanceService() {
         this.company = TCPServer.getInstance().getCompany();
     }
 
-    // 3. Récupération de l'instance
     public static AttendanceService getInstance() {
         if (instance == null) {
             instance = new AttendanceService();
@@ -28,65 +30,103 @@ public class AttendanceService {
     }
 
     // ==========================================
+    // 🧠 LOGIQUE MÉTIER CENTRALISÉE
+    // ==========================================
+    public void evaluerEtAppliquerPointage(AttendanceRecord record) {
+        Employee emp = record.getEmployee();
+
+        if (emp != null && emp.getSchedule() != null) {
+            DayOfWeek jour = record.getTime().getDayOfWeek();
+            TimeSlot slot = emp.getSchedule().getHorairePourJour(jour);
+
+            if (slot != null && slot.getArrivee() != null && slot.getDepart() != null) {
+                ConfigManager config = new ConfigManager();
+                int tolerance = config.getToleranceMinutes();
+
+                LocalTime actualTime = record.getTime().toLocalTime();
+                long diffMinutes = 0;
+
+                if (record.isCheckIn()) {
+                    LocalTime scheduledTime = slot.getArrivee();
+                    diffMinutes = Duration.between(scheduledTime, actualTime).toMinutes();
+
+                    if (diffMinutes > tolerance) {
+                        record.setStatus("Incident : Retard");
+                        emp.setSoldeMinutes(emp.getSoldeMinutes() - diffMinutes);
+                    } else if (diffMinutes < -tolerance) {
+                        record.setStatus("Avance");
+                        emp.setSoldeMinutes(emp.getSoldeMinutes() + Math.abs(diffMinutes));
+                    } else {
+                        record.setStatus("Normal");
+                    }
+                } else {
+                    LocalTime scheduledTime = slot.getDepart();
+                    diffMinutes = Duration.between(scheduledTime, actualTime).toMinutes();
+
+                    if (diffMinutes > tolerance) {
+                        record.setStatus("Heures supp.");
+                        emp.setSoldeMinutes(emp.getSoldeMinutes() + diffMinutes);
+                    } else if (diffMinutes < -tolerance) {
+                        record.setStatus("Incident : Départ anticipé");
+                        emp.setSoldeMinutes(emp.getSoldeMinutes() + diffMinutes); // diff est négatif
+                    } else {
+                        record.setStatus("Normal");
+                    }
+                }
+            } else {
+                record.setStatus("Incident : Hors planning");
+            }
+        } else {
+            record.setStatus("Normal (Aucun planning assigné)");
+        }
+    }
+
+    // ==========================================
     // 🟩 CREATE (Ajouter)
     // ==========================================
     public void addAttendanceRecord(AttendanceRecord record) throws Exception {
         if (record == null || record.getEmployee() == null) {
-            throw new Exception("Le pointage est invalide ou l'employé n'est pas spécifié.");
+            throw new Exception("Le pointage est invalide.");
+        }
+        if (record.getTime() != null && record.getTime().isAfter(LocalDateTime.now())) {
+            throw new Exception("On ne peut pas pointer dans le futur !");
         }
 
-        // Règle métier : On ne peut pas pointer dans le futur
-        if (record.getTime() != null && record.getTime().isAfter(LocalDateTime.now())) {
-            throw new Exception("Date de pointage invalide : on ne peut pas pointer dans le futur !");
-        }
+        // ✅ APPEL DU CERVEAU AVANT DE SAUVEGARDER
+        evaluerEtAppliquerPointage(record);
 
         company.getAttendanceRecords().add(record);
         saveData();
     }
 
     // ==========================================
-    // 🟦 READ (Lire)
-    // ==========================================
-    public List<AttendanceRecord> getAllAttendanceRecords() {
-        return company.getAttendanceRecords();
-    }
-
-    // ==========================================
     // 🟧 UPDATE (Mettre à jour)
     // ==========================================
     public void updateAttendanceRecord(AttendanceRecord record) throws Exception {
-        if (record == null) {
-            throw new Exception("Le pointage à modifier est invalide.");
-        }
-        // En mémoire, l'objet est déjà modifié par l'interface, on déclenche la sauvegarde
+        if (record == null) throw new Exception("Le pointage à modifier est invalide.");
+
+        // ✅ ON RECALCULE SI MODIFIÉ
+        evaluerEtAppliquerPointage(record);
+        record.setStatus(record.getStatus() + " (Modifié)");
+
         saveData();
     }
 
-    // ==========================================
-    // 🟥 DELETE (Supprimer)
-    // ==========================================
+    public List<AttendanceRecord> getAllAttendanceRecords() { return company.getAttendanceRecords(); }
+
     public void deleteAttendanceRecord(AttendanceRecord record) throws Exception {
-        if (record == null) {
-            throw new Exception("Impossible de supprimer un pointage nul.");
+        if (record == null || !company.getAttendanceRecords().remove(record)) {
+            throw new Exception("Suppression impossible.");
         }
-
-        boolean removed = company.getAttendanceRecords().remove(record);
-        if (!removed) {
-            throw new Exception("Ce pointage n'existe pas ou a déjà été supprimé.");
-        }
-
         saveData();
     }
 
-    // ==========================================
-    // 💾 PERSISTANCE (Sauvegarde)
-    // ==========================================
     private void saveData() {
         try {
-            PersistenceManager.saveData(this.company);
-            System.out.println("LOG : Base de données de l'entreprise (Pointages) mise à jour sur le disque.");
+            com.example.mainapp.service.PersistenceManager.saveData(this.company);
+            System.out.println("LOG : Base de données mise à jour sur le disque.");
         } catch (Exception e) {
-            System.err.println("Erreur critique lors de la sauvegarde : " + e.getMessage());
+            System.err.println("Erreur sauvegarde : " + e.getMessage());
         }
     }
 }

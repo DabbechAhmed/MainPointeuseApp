@@ -106,12 +106,15 @@ public class AttendanceFormController {
             // 4. Enregistrement via le Service
             if (isCreationMode) {
                 AttendanceRecord nouveauRecord = new AttendanceRecord(employeSelectionne, dateHeureComplete, isCheckIn);
+
+                // ✅ LE SERVICE PREND LE RELAIS (Il calculera le retard et mettra à jour le solde)
                 AttendanceService.getInstance().addAttendanceRecord(nouveauRecord);
             } else {
                 // Modification de l'existant
                 recordActuel.setTime(dateHeureComplete);
                 recordActuel.setCheckIn(isCheckIn);
-                recordActuel.setStatus("Modifié manuellement");
+
+                // ✅ LE SERVICE PREND LE RELAIS (Il recalculera tout et ajoutera "Modifié")
                 AttendanceService.getInstance().updateAttendanceRecord(recordActuel);
             }
 

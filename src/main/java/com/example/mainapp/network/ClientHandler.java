@@ -4,19 +4,15 @@ import com.example.mainapp.controller.MainController;
 import com.example.mainapp.model.Company;
 import com.example.mainapp.model.Employee;
 import com.example.mainapp.model.AttendanceRecord;
-import com.example.mainapp.model.TimeSlot;
 import com.example.dto.EmployeeDTO;
 import com.example.dto.CheckPoint;
+import com.example.mainapp.service.AttendanceService; // ✅ NOUVEL IMPORT
 import com.example.mainapp.service.PersistenceManager;
-import com.example.mainapp.utils.ConfigManager;
 import javafx.application.Platform;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.time.DayOfWeek;
-import java.time.Duration;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -82,72 +78,27 @@ public class ClientHandler implements Runnable {
                         }
                     }
 
-                    // --- 🚀 LOGIQUE F6 (PARTIE 2) : RETARDS, AVANCES ET SOLDE ---
-                    if (!isDoublon) {
-                        if (emp.getSchedule() != null) {
-                            DayOfWeek jour = record.getTime().getDayOfWeek();
-                            TimeSlot slot = emp.getSchedule().getHorairePourJour(jour);
-
-                            // ✅ MODIFICATION ICI : On utilise getArrivee() et getDepart()
-                            if (slot != null && slot.getArrivee() != null && slot.getDepart() != null) {
-
-                                // On charge la tolérance depuis ton fichier config (F5)
-                                ConfigManager config = new ConfigManager();
-                                int tolerance = config.getToleranceMinutes();
-
-                                LocalTime actualTime = record.getTime().toLocalTime();
-                                long diffMinutes = 0;
-
-                                if (record.isCheckIn()) {
-                                    // ---- CALCUL ENTRÉE ----
-                                    LocalTime scheduledTime = slot.getArrivee(); // ✅ CORRIGÉ
-                                    // Différence entre l'heure prévue et l'heure réelle
-                                    diffMinutes = Duration.between(scheduledTime, actualTime).toMinutes();
-
-                                    if (diffMinutes > tolerance) {
-                                        record.setStatus("Incident : Retard");
-                                        emp.setSoldeMinutes(emp.getSoldeMinutes() - diffMinutes); // Pénalité : on soustrait
-                                    } else if (diffMinutes < -tolerance) {
-                                        record.setStatus("Avance");
-                                        emp.setSoldeMinutes(emp.getSoldeMinutes() + Math.abs(diffMinutes)); // Bonus : on ajoute
-                                    } else {
-                                        record.setStatus("Normal");
-                                    }
-                                } else {
-                                    // ---- CALCUL SORTIE ----
-                                    LocalTime scheduledTime = slot.getDepart(); // ✅ CORRIGÉ
-                                    diffMinutes = Duration.between(scheduledTime, actualTime).toMinutes();
-
-                                    if (diffMinutes > tolerance) {
-                                        record.setStatus("Heures supp.");
-                                        emp.setSoldeMinutes(emp.getSoldeMinutes() + diffMinutes); // Bonus
-                                    } else if (diffMinutes < -tolerance) {
-                                        record.setStatus("Incident : Départ anticipé");
-                                        // diffMinutes est négatif ici, donc le "+" va faire une soustraction (Pénalité)
-                                        emp.setSoldeMinutes(emp.getSoldeMinutes() + diffMinutes);
-                                    } else {
-                                        record.setStatus("Normal");
-                                    }
-                                }
-                            } else {
-                                record.setStatus("Incident : Hors planning");
-                            }
+                    // --- 🚀 LOGIQUE F6 (PARTIE 2) : DÉLÉGATION AU SERVICE ---
+                    try {
+                        if (isDoublon) {
+                            // Si c'est un doublon, on l'ajoute juste pour la trace, sans recalculer le solde
+                            company.addAttendanceRecord(record);
+                            PersistenceManager.saveData(company);
                         } else {
-                            record.setStatus("Normal (Aucun planning assigné)");
+                            // ✅ LE SERVICE FAIT TOUT : Calcule le solde, met à jour le statut, ajoute à la liste et sauvegarde
+                            AttendanceService.getInstance().addAttendanceRecord(record);
                         }
+
+                        // 3. Dire à la pointeuse que c'est bon
+                        oos.writeObject("OK");
+                    } catch (Exception e) {
+                        System.err.println("❌ Erreur lors du traitement métier : " + e.getMessage());
+                        oos.writeObject("ERROR");
                     }
 
-                    // 3. Ajouter le pointage à la mémoire de l'entreprise
-                    company.addAttendanceRecord(record);
-
-                    // 4. Sauvegarder immédiatement sur le disque (Employés et Pointages mis à jour)
-                    PersistenceManager.saveData(company);
-
-                    // 5. Dire à la pointeuse que c'est bon
-                    oos.writeObject("OK");
                     oos.flush();
 
-                    // 6. MAGIE JAVAFX : Actualisation en temps réel de la table !
+                    // 4. MAGIE JAVAFX : Actualisation en temps réel de la table et du Dashboard !
                     Platform.runLater(() -> {
                         if (MainController.instance != null) {
                             MainController.instance.rafraichirUI();
