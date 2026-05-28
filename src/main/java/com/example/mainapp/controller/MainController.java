@@ -4,27 +4,37 @@ import com.example.mainapp.model.Company;
 import com.example.mainapp.model.Employee;
 import com.example.dto.CheckPoint;
 import com.example.mainapp.network.TCPServer;
-import com.example.mainapp.service.PersistenceManager;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 
 import java.util.List;
 
 public class MainController {
 
-    // ✅ 1. DÉCLARATION DU PONT STATIQUE : Accessible de partout dans l'app
     public static MainController instance;
+    private Company company;
 
-    // Déclaration typée des tables et des colonnes (Employés)
-    @FXML private TableView<Employee> employeeTable;
-    @FXML private TableColumn<Employee, String> colEmpId;
-    @FXML private TableColumn<Employee, String> colEmpNom;
-    @FXML private TableColumn<Employee, String> colEmpPrenom;
+    // ========================================================
+    // 🔀 GESTION DES PAGES (VUES FXML)
+    // ========================================================
+    @FXML private VBox viewDashboard;
+    @FXML private VBox viewEmployees;
+    @FXML private VBox viewPointages;
 
-    // Déclaration typée des tables et des colonnes (Pointages)
+    // ✅ NOUVEAU : La magie de l'injection !
+    // JavaFX va automatiquement lier cette variable au contrôleur de ta page employé.
+    // Le nom DOIT être l'id de ton fx:include ("viewEmployees") + "Controller"
+    @FXML private EmployeeController viewEmployeesController;
+
+    // ========================================================
+    // 📊 ÉLÉMENTS DE L'INTERFACE (Dashboard et Pointages uniquement)
+    // ========================================================
+    // ❌ Les variables employeeTable, colEmpId, colEmpNom, etc... ONT ÉTÉ SUPPRIMÉES !
+
     @FXML private TableView<CheckPoint> attendanceTable;
     @FXML private TableColumn<CheckPoint, String> colAttEmpId;
     @FXML private TableColumn<CheckPoint, String> colAttEmpNom;
@@ -33,82 +43,102 @@ public class MainController {
     @FXML private TableColumn<CheckPoint, String> colAttHeure;
     @FXML private TableColumn<CheckPoint, String> colAttStatut;
 
-    // Avertissements normaux
-    @FXML private TextField searchField;
     @FXML private DatePicker dateFilter;
     @FXML private Label statusLabel;
     @FXML private Label employeeCountLabel;
 
-    private Company company;
-
+    // ========================================================
+    // 🚀 INITIALISATION
+    // ========================================================
     @FXML
     public void initialize() {
-        // ✅ 2. INITIALISATION DU PONT : Dès que la fenêtre s'ouvre, elle s'enregistre ici
         instance = this;
-
         statusLabel.setText("Application démarrée");
 
-        // Lier les colonnes des employés
-        colEmpId.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getId().toString()));
-        colEmpNom.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getName()));
-        colEmpPrenom.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getSurname()));
+
 
         // Lier les colonnes des pointages
         colAttEmpId.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getEmployeeId().toString()));
-
-        // Jointure dynamique
         colAttEmpNom.setCellValueFactory(cellData -> {
             CheckPoint pointageActuel = cellData.getValue();
-            Employee emp = company.findEmployeeById(pointageActuel.getEmployeeId());
-            if (emp != null) {
-                return new SimpleStringProperty(emp.getName() + " " + emp.getSurname());
-            } else {
-                return new SimpleStringProperty("Employé inconnu");
-            }
+            Employee emp = company != null ? company.findEmployeeById(pointageActuel.getEmployeeId()) : null;
+            return new SimpleStringProperty(emp != null ? emp.getName() + " " + emp.getSurname() : "Employé inconnu");
         });
-
         colAttType.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().isCheckIn() ? "Entrée" : "Sortie"));
         colAttDate.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getTime().toLocalDate().toString()));
         colAttHeure.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getTime().toLocalTime().toString()));
-        // ✅ Liaison de la nouvelle colonne pour afficher le statut "Normal" ou "Incident : Doublon"
         colAttStatut.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getStatut()));
-        // Charger les données initiales
+
         loadDataIntoTables();
+        showDashboard();
     }
 
-    // ✅ 3. MÉTHODE PUBLIQUE POUR LE SERVEUR : Le ClientHandler appellera cette méthode
+    // ========================================================
+    // 🔄 MÉTHODES DE CHARGEMENT ET RÉSEAU
+    // ========================================================
     public void rafraichirUI() {
         loadDataIntoTables();
     }
 
-    // Charge les données en mémoire et met à jour l'UI
     private void loadDataIntoTables() {
         this.company = TCPServer.getInstance().getCompany();
-
         if (this.company == null) return;
 
-        ObservableList<Employee> empList = FXCollections.observableArrayList(company.getEmployees());
-        employeeTable.setItems(empList);
-        employeeCountLabel.setText("Employés: " + empList.size());
-
-        List<CheckPoint> listePointages = company.getCheckPoints();
-        if (listePointages == null) {
-            listePointages = new java.util.ArrayList<>();
+        // ✅ NOUVEAU : On délègue la mise à jour des employés au sous-contrôleur !
+        // Le MainController ne s'occupe plus de charger les employés, il donne juste l'ordre.
+        if (viewEmployeesController != null) {
+            viewEmployeesController.rafraichirTableau();
         }
+
+        // Remplir le tableau des pointages
+        List<CheckPoint> listePointages = company.getCheckPoints();
+        if (listePointages == null) listePointages = new java.util.ArrayList<>();
         ObservableList<CheckPoint> attList = FXCollections.observableArrayList(listePointages);
         attendanceTable.setItems(attList);
+
+        // Mise à jour de la carte statistique du Dashboard
+        employeeCountLabel.setText(String.valueOf(company.getEmployees().size()));
     }
 
+    // ========================================================
+    // 🧭 NAVIGATION (MENU LATÉRAL) - INCHANGÉ
+    // ========================================================
+    private void cacherToutesLesVues() {
+        if (viewDashboard != null) viewDashboard.setVisible(false);
+        if (viewEmployees != null) viewEmployees.setVisible(false);
+        if (viewPointages != null) viewPointages.setVisible(false);
+    }
+
+    @FXML
+    protected void showDashboard() {
+        cacherToutesLesVues();
+        if (viewDashboard != null) viewDashboard.setVisible(true);
+    }
+
+    @FXML
+    protected void showEmployees() {
+        cacherToutesLesVues();
+        if (viewEmployees != null) viewEmployees.setVisible(true);
+    }
+
+    @FXML
+    protected void showPointages() {
+        cacherToutesLesVues();
+        if (viewPointages != null) viewPointages.setVisible(true);
+    }
+
+    // ========================================================
+    // 🖱️ ACTIONS DES BOUTONS
+    // ========================================================
     @FXML
     protected void handleRefresh() {
         statusLabel.setText("Rafraîchissement des données...");
         loadDataIntoTables();
-        System.out.println("Données rafraîchies");
     }
 
-    @FXML protected void handleAddEmployee() { System.out.println("Add Employee clicked"); }
-    @FXML protected void handleDeleteEmployee() { System.out.println("Delete Employee clicked"); }
-    @FXML protected void handleEditEmployee() { System.out.println("Edit Employee clicked"); }
-    @FXML protected void handleFilterAttendance() { System.out.println("Filter Attendance clicked"); }
-    @FXML protected void handleExit() { System.exit(0); }
+
+    @FXML
+    protected void handleFilterAttendance() {
+        System.out.println("Action : Filtrer les pointages");
+    }
 }

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.example.mainapp.controller.EmployeeFormController"
+      spacing="20" styleClass="page-container" prefWidth="450">
+
+    <padding>
+        <Insets top="20" right="30" bottom="20" left="30"/>
+    </padding>
+
+    <Label fx:id="titleLabel" text="Détails de l'employé" styleClass="header-title" maxWidth="Infinity" alignment="CENTER"/>
+
+    <Label text="Informations générales" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #0b2545;"/>
+    <GridPane hgap="15" vgap="12">
+        <columnConstraints>
+            <ColumnConstraints minWidth="100" />
+            <ColumnConstraints hgrow="ALWAYS" />
+        </columnConstraints>
+
+        <Label text="Nom :" GridPane.rowIndex="0" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+        <TextField fx:id="nomField" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+        <Label text="Prénom :" GridPane.rowIndex="1" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+        <TextField fx:id="prenomField" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+        <Label text="Département :" GridPane.rowIndex="2" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+        <ComboBox fx:id="deptComboBox" GridPane.rowIndex="2" GridPane.columnIndex="1" maxWidth="Infinity"/>
+
+        <Label text="Statut :" GridPane.rowIndex="3" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+        <ComboBox fx:id="statusComboBox" GridPane.rowIndex="3" GridPane.columnIndex="1" maxWidth="Infinity"/>
+    </GridPane>
+
+    <Separator />
+
+    <Label text="Horaires de travail (ex: 08:00-16:00)" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #0b2545;"/>
+
+    <GridPane hgap="15" vgap="12">
+        <columnConstraints>
+            <ColumnConstraints minWidth="80" />
+            <ColumnConstraints hgrow="ALWAYS" />
+            <ColumnConstraints minWidth="80" />
+            <ColumnConstraints hgrow="ALWAYS" />
+        </columnConstraints>
+
+        <Label text="Lundi :" GridPane.rowIndex="0" GridPane.columnIndex="0" />
+        <TextField fx:id="lundiField" GridPane.rowIndex="0" GridPane.columnIndex="1" promptText="08:00-17:00"/>
+
+        <Label text="Mardi :" GridPane.rowIndex="0" GridPane.columnIndex="2" />
+        <TextField fx:id="mardiField" GridPane.rowIndex="0" GridPane.columnIndex="3" promptText="08:00-17:00"/>
+
+        <Label text="Mercredi :" GridPane.rowIndex="1" GridPane.columnIndex="0" />
+        <TextField fx:id="mercrediField" GridPane.rowIndex="1" GridPane.columnIndex="1" promptText="08:00-17:00"/>
+
+        <Label text="Jeudi :" GridPane.rowIndex="1" GridPane.columnIndex="2" />
+        <TextField fx:id="jeudiField" GridPane.rowIndex="1" GridPane.columnIndex="3" promptText="08:00-17:00"/>
+
+        <Label text="Vendredi :" GridPane.rowIndex="2" GridPane.columnIndex="0" />
+        <TextField fx:id="vendrediField" GridPane.rowIndex="2" GridPane.columnIndex="1" promptText="08:00-16:00"/>
+    </GridPane>
+
+    <Region VBox.vgrow="ALWAYS" />
+
+    <HBox spacing="15" alignment="CENTER_RIGHT">
+        <Button fx:id="btnDelete" text="Supprimer" onAction="#handleDelete" style="-fx-background-color: #ff4d4d; -fx-text-fill: white; -fx-background-radius: 5;"/>
+        <Region HBox.hgrow="ALWAYS" />
+        <Button text="Annuler" onAction="#handleCancel" style="-fx-background-color: #e0e0e0; -fx-background-radius: 5;"/>
+        <Button text="Enregistrer" onAction="#handleSave" styleClass="btn-primary"/>
+    </HBox>
+
+</VBox>

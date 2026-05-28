@@ -1,0 +1,126 @@
+/* ========================================================
+   1. STRUCTURE GÉNÉRALE
+   ======================================================== */
+.root {
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-background-color: #f4f7f6; /* Gris très clair pour le fond central */
+}
+
+/* ========================================================
+   2. LE MENU LATÉRAL (SIDEBAR)
+   ======================================================== */
+.sidebar {
+    -fx-background-color: #0b2545; /* Le bleu très foncé de ta maquette */
+    -fx-padding: 0;
+}
+
+.sidebar-title-container {
+    -fx-background-color: #0d3b66; /* Un bleu légèrement plus clair pour le haut */
+    -fx-padding: 20;
+    -fx-alignment: center;
+}
+
+.sidebar-title {
+    -fx-text-fill: white;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+}
+
+.menu-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+    -fx-font-size: 15px;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 15 20;
+    -fx-pref-width: 250px; /* Largeur fixe du menu */
+    -fx-cursor: hand;
+    -fx-border-width: 0 0 0 5; /* Prépare une bordure à gauche */
+    -fx-border-color: transparent;
+}
+
+/* Effet au survol de la souris */
+.menu-button:hover {
+    -fx-background-color: #134074;
+}
+
+/* Effet quand le bouton est cliqué / actif */
+.menu-button:pressed {
+    -fx-background-color: #134074;
+    -fx-border-color: #4da6ff; /* Ligne bleue claire à gauche */
+}
+
+/* ========================================================
+   3. LE CONTENU CENTRAL (PAGES)
+   ======================================================== */
+.page-container {
+    -fx-padding: 30;
+    -fx-background-color: #f8fbff; /* Fond principal très clair */
+}
+
+.header-title {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-alignment: center;
+    -fx-padding: 20;
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 5);
+}
+
+.section-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333333;
+    -fx-padding: 20 0 15 0;
+}
+
+/* ========================================================
+   4. LES CARTES DU DASHBOARD (STATISTIQUES)
+   ======================================================== */
+.stat-card {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-padding: 25;
+    -fx-alignment: center;
+    -fx-min-width: 200px;
+    -fx-border-color: #e0e0e0;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+}
+
+.stat-title {
+    -fx-text-fill: #888888;
+    -fx-font-size: 14px;
+}
+
+.stat-number {
+    -fx-text-fill: #0b2545;
+    -fx-font-size: 36px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 0 0 0;
+}
+
+/* ========================================================
+   5. BOUTONS SPÉCIAUX ET TABLEAU
+   ======================================================== */
+.btn-primary {
+    -fx-background-color: #4da6ff;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 20; /* Bords en pilule */
+    -fx-padding: 8 20;
+    -fx-cursor: hand;
+}
+
+.btn-primary:hover {
+    -fx-background-color: #3399ff;
+}
+
+/* Rendre le tableau propre et sans bordures moches */
+.table-view {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+.table-column {
+    -fx-alignment: CENTER;
+}
