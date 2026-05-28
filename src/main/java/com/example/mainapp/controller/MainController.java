@@ -23,18 +23,15 @@ public class MainController {
     // ========================================================
     @FXML private VBox viewDashboard;
     @FXML private VBox viewEmployees;
+    @FXML private VBox viewDepartments; // ✅ NOUVEAU
     @FXML private VBox viewPointages;
 
-    // ✅ NOUVEAU : La magie de l'injection !
-    // JavaFX va automatiquement lier cette variable au contrôleur de ta page employé.
-    // Le nom DOIT être l'id de ton fx:include ("viewEmployees") + "Controller"
     @FXML private EmployeeController viewEmployeesController;
+    @FXML private DepartmentController viewDepartmentsController; // ✅ NOUVEAU
 
     // ========================================================
-    // 📊 ÉLÉMENTS DE L'INTERFACE (Dashboard et Pointages uniquement)
+    // 📊 ÉLÉMENTS DE L'INTERFACE (Pointages uniquement)
     // ========================================================
-    // ❌ Les variables employeeTable, colEmpId, colEmpNom, etc... ONT ÉTÉ SUPPRIMÉES !
-
     @FXML private TableView<CheckPoint> attendanceTable;
     @FXML private TableColumn<CheckPoint, String> colAttEmpId;
     @FXML private TableColumn<CheckPoint, String> colAttEmpNom;
@@ -47,17 +44,11 @@ public class MainController {
     @FXML private Label statusLabel;
     @FXML private Label employeeCountLabel;
 
-    // ========================================================
-    // 🚀 INITIALISATION
-    // ========================================================
     @FXML
     public void initialize() {
         instance = this;
         statusLabel.setText("Application démarrée");
 
-
-
-        // Lier les colonnes des pointages
         colAttEmpId.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getEmployeeId().toString()));
         colAttEmpNom.setCellValueFactory(cellData -> {
             CheckPoint pointageActuel = cellData.getValue();
@@ -73,9 +64,6 @@ public class MainController {
         showDashboard();
     }
 
-    // ========================================================
-    // 🔄 MÉTHODES DE CHARGEMENT ET RÉSEAU
-    // ========================================================
     public void rafraichirUI() {
         loadDataIntoTables();
     }
@@ -84,28 +72,30 @@ public class MainController {
         this.company = TCPServer.getInstance().getCompany();
         if (this.company == null) return;
 
-        // ✅ NOUVEAU : On délègue la mise à jour des employés au sous-contrôleur !
-        // Le MainController ne s'occupe plus de charger les employés, il donne juste l'ordre.
         if (viewEmployeesController != null) {
             viewEmployeesController.rafraichirTableau();
         }
 
-        // Remplir le tableau des pointages
+        // ✅ NOUVEAU : On demande au sous-contrôleur Département de se rafraîchir
+        if (viewDepartmentsController != null) {
+            viewDepartmentsController.rafraichirTableau();
+        }
+
         List<CheckPoint> listePointages = company.getCheckPoints();
         if (listePointages == null) listePointages = new java.util.ArrayList<>();
         ObservableList<CheckPoint> attList = FXCollections.observableArrayList(listePointages);
         attendanceTable.setItems(attList);
 
-        // Mise à jour de la carte statistique du Dashboard
         employeeCountLabel.setText(String.valueOf(company.getEmployees().size()));
     }
 
     // ========================================================
-    // 🧭 NAVIGATION (MENU LATÉRAL) - INCHANGÉ
+    // 🧭 NAVIGATION
     // ========================================================
     private void cacherToutesLesVues() {
         if (viewDashboard != null) viewDashboard.setVisible(false);
         if (viewEmployees != null) viewEmployees.setVisible(false);
+        if (viewDepartments != null) viewDepartments.setVisible(false); // ✅ NOUVEAU
         if (viewPointages != null) viewPointages.setVisible(false);
     }
 
@@ -121,21 +111,24 @@ public class MainController {
         if (viewEmployees != null) viewEmployees.setVisible(true);
     }
 
+    // ✅ NOUVELLE MÉTHODE DE NAVIGATION
+    @FXML
+    protected void showDepartments() {
+        cacherToutesLesVues();
+        if (viewDepartments != null) viewDepartments.setVisible(true);
+    }
+
     @FXML
     protected void showPointages() {
         cacherToutesLesVues();
         if (viewPointages != null) viewPointages.setVisible(true);
     }
 
-    // ========================================================
-    // 🖱️ ACTIONS DES BOUTONS
-    // ========================================================
     @FXML
     protected void handleRefresh() {
         statusLabel.setText("Rafraîchissement des données...");
         loadDataIntoTables();
     }
-
 
     @FXML
     protected void handleFilterAttendance() {

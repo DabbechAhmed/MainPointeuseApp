@@ -16,6 +16,9 @@
 
             <Button text="Dashboard" onAction="#showDashboard" styleClass="menu-button"/>
             <Button text="Employés" onAction="#showEmployees" styleClass="menu-button"/>
+
+            <Button text="Départements" onAction="#showDepartments" styleClass="menu-button"/>
+
             <Button text="Pointages" onAction="#showPointages" styleClass="menu-button"/>
 
             <Region VBox.vgrow="ALWAYS" />
@@ -28,11 +31,8 @@
         <StackPane fx:id="contentArea" styleClass="page-container">
 
             <VBox fx:id="viewDashboard" spacing="30">
-
                 <Label text="Application de Pointage - Polytech Tours" styleClass="header-title" maxWidth="Infinity"/>
-
                 <Label text="Résumé Quotidien" styleClass="section-title"/>
-
                 <HBox spacing="30">
                     <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
                         <Label text="Nombre d'employés" styleClass="stat-title"/>
@@ -51,12 +51,12 @@
 
             <fx:include source="employee-view.fxml" fx:id="viewEmployees" />
 
+            <fx:include source="department-view.fxml" fx:id="viewDepartments" />
+
             <VBox fx:id="viewPointages" spacing="20">
                 <HBox alignment="CENTER_LEFT" spacing="20">
                     <Label text="Historique des pointages" styleClass="section-title"/>
-
                     <Region HBox.hgrow="ALWAYS" />
-
                     <Label text="Filtrer par date:"/>
                     <DatePicker fx:id="dateFilter"/>
                     <Button text="Appliquer" onAction="#handleFilterAttendance" styleClass="btn-primary"/>

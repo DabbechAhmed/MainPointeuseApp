@@ -105,15 +105,25 @@ package com.example.mainapp;
 
                     System.out.println("🏢 Entreprise : " + compagnieChargee.getName());
                     System.out.println("🏭 Nombre de départements : " + compagnieChargee.getDepartments().size());
+
+                    // ✅ NOUVEAU : On affiche les départements et leurs ID pour vérifier
+                    for(Department d : compagnieChargee.getDepartments()) {
+                        System.out.println("   -> " + d.getName() + " (ID: " + d.getId() + ")");
+                    }
+
                     System.out.println("👥 Nombre d'employés récupérés : " + compagnieChargee.getEmployees().size());
                     System.out.println("-------------------------------------------------");
 
                     for (Employee recup : compagnieChargee.getEmployees()) {
-                        String nomDept = (recup.getDepartment() != null) ? recup.getDepartment().getName() : "Aucun";
+                        // ✅ NOUVEAU : On affiche aussi l'ID du département lié à l'employé
+                        String infoDept = (recup.getDepartment() != null)
+                                ? recup.getDepartment().getName() + " [" + recup.getDepartment().getId() + "]"
+                                : "Aucun";
+
                         System.out.println("👤 " + recup.getName() + " " + recup.getSurname() +
-                                           " | Dpt: " + nomDept +
-                                           " | Status: " + recup.getStatus() +
-                                           " | Horaires: " + recup.getSchedule().getHorairePourJour(DayOfWeek.MONDAY));
+                                "\n    | Dpt: " + infoDept +
+                                "\n    | Status: " + recup.getStatus() +
+                                "\n    | Horaires Lundi: " + recup.getSchedule().getHorairePourJour(DayOfWeek.MONDAY));
                     }
                     System.out.println("-------------------------------------------------");
                 }
