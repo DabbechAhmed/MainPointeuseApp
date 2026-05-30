@@ -5,13 +5,11 @@ import com.example.mainapp.network.TCPServer;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
-import com.example.mainapp.utils.ConfigManager;
 
 public class MainController {
 
     public static MainController instance;
     private Company company;
-    private ConfigManager config;
 
     // ========================================================
     // 🔀 GESTION DES PAGES (VUES FXML)
@@ -26,17 +24,15 @@ public class MainController {
     @FXML private EmployeeController viewEmployeesController;
     @FXML private DepartmentController viewDepartmentsController;
     @FXML private AttendanceController viewPointagesController;
+    @FXML private SettingsController viewSettingsController; // Injection du nouveau contrôleur
 
     // ========================================================
-    // 📊 ÉLÉMENTS DE L'INTERFACE (Dashboard & Paramètres)
+    // 📊 ÉLÉMENTS DE L'INTERFACE (Dashboard)
     // ========================================================
     @FXML private Label statusLabel;
     @FXML private Label employeeCountLabel;
     @FXML private Label pointagesTodayLabel;
     @FXML private Label incidentsLabel;
-
-    @FXML private TextField serverPortField;
-    @FXML private TextField toleranceField;
 
     // ✅ BOUTONS DU MENU
     @FXML private Button btnDashboard;
@@ -49,11 +45,6 @@ public class MainController {
     public void initialize() {
         instance = this;
         statusLabel.setText("Application démarrée");
-
-        // Initialisation de la configuration
-        this.config = new ConfigManager();
-        serverPortField.setText(String.valueOf(config.getServerPort()));
-        toleranceField.setText(String.valueOf(config.getToleranceMinutes()));
 
         loadDataIntoTables();
         showDashboard();
@@ -112,11 +103,10 @@ public class MainController {
     }
 
     // ========================================================
-    // 🧭 NAVIGATION (CORRIGÉE)
+    // 🧭 NAVIGATION
     // ========================================================
 
     private void setActiveButton(Button clickedButton) {
-        // Sécurité ajoutée : on vérifie que les boutons ne sont pas nuls avant de changer leur style
         if (btnDashboard != null) btnDashboard.getStyleClass().remove("active");
         if (btnEmployees != null) btnEmployees.getStyleClass().remove("active");
         if (btnDepartments != null) btnDepartments.getStyleClass().remove("active");
@@ -158,24 +148,5 @@ public class MainController {
     protected void handleRefresh() {
         statusLabel.setText("Rafraîchissement des données...");
         rafraichirUI();
-    }
-
-    @FXML
-    protected void handleSaveSettings() {
-        try {
-            int port = Integer.parseInt(serverPortField.getText());
-            int tolerance = Integer.parseInt(toleranceField.getText());
-
-            config.setServerPort(port);
-            config.setToleranceMinutes(tolerance);
-            config.saveConfig();
-
-            Alert alert = new Alert(Alert.AlertType.INFORMATION, "✅ Paramètres sauvegardés avec succès ! \n(Le changement de port nécessite un redémarrage du serveur)");
-            alert.showAndWait();
-
-        } catch (NumberFormatException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR, "❌ Le port et la tolérance doivent être des nombres entiers !");
-            alert.showAndWait();
-        }
     }
 }

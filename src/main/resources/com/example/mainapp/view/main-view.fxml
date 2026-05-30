@@ -53,21 +53,7 @@
 
             <fx:include source="attendance-view.fxml" fx:id="viewPointages" visible="false" />
 
-            <VBox fx:id="viewSettings" spacing="20" visible="false">
-                <Label text="Paramètres de l'application (F5)" styleClass="section-title"/>
-
-                <GridPane hgap="15" vgap="15">
-                    <Label text="Port d'écoute TCP :" GridPane.rowIndex="0" GridPane.columnIndex="0" style="-fx-font-weight: bold;" />
-                    <TextField fx:id="serverPortField" GridPane.rowIndex="0" GridPane.columnIndex="1" promptText="ex: 8080" />
-
-                    <Label text="Tolérance Retard/Avance (minutes) :" GridPane.rowIndex="1" GridPane.columnIndex="0" style="-fx-font-weight: bold;" />
-                    <TextField fx:id="toleranceField" GridPane.rowIndex="1" GridPane.columnIndex="1" promptText="ex: 15" />
-                </GridPane>
-
-                <HBox alignment="CENTER_LEFT" spacing="20">
-                    <Button text="Sauvegarder" onAction="#handleSaveSettings" styleClass="btn-primary"/>
-                </HBox>
-            </VBox>
+            <fx:include source="settings-view.fxml" fx:id="viewSettings" visible="false" />
 
         </StackPane>
     </center>

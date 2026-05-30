@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.example.mainapp.controller.SettingsController"
+      spacing="20">
+
+    <Label text="Paramètres de l'application (F5)" styleClass="section-title"/>
+
+    <GridPane hgap="15" vgap="15">
+        <Label text="Adresse IP du Serveur :" GridPane.rowIndex="0" GridPane.columnIndex="0" style="-fx-font-weight: bold;" />
+        <TextField fx:id="serverIpField" GridPane.rowIndex="0" GridPane.columnIndex="1" editable="false" style="-fx-background-color: #f0f0f0;" />
+
+        <Label text="Port d'écoute TCP :" GridPane.rowIndex="1" GridPane.columnIndex="0" style="-fx-font-weight: bold;" />
+        <TextField fx:id="serverPortField" GridPane.rowIndex="1" GridPane.columnIndex="1" promptText="ex: 8080" />
+
+        <Label text="Tolérance Retard/Avance (minutes) :" GridPane.rowIndex="2" GridPane.columnIndex="0" style="-fx-font-weight: bold;" />
+        <TextField fx:id="toleranceField" GridPane.rowIndex="2" GridPane.columnIndex="1" promptText="ex: 15" />
+    </GridPane>
+
+    <HBox alignment="CENTER_LEFT" spacing="20">
+        <Button text="Sauvegarder" onAction="#handleSaveSettings" styleClass="btn-primary"/>
+    </HBox>
+
+</VBox>
