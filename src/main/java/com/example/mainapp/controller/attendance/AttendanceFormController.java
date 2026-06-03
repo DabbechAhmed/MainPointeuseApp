@@ -1,9 +1,8 @@
-package com.example.mainapp.controller;
+package com.example.mainapp.controller.attendance;
 
 import com.example.mainapp.model.AttendanceRecord;
 import com.example.mainapp.model.Employee;
 import com.example.mainapp.network.TCPServer;
-import com.example.mainapp.service.AttendanceService;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -107,14 +106,14 @@ public class AttendanceFormController {
             if (isCreationMode) {
                 AttendanceRecord nouveauRecord = new AttendanceRecord(employeSelectionne, dateHeureComplete, isCheckIn);
 
-                // ✅ LE SERVICE PREND LE RELAIS (Il calculera le retard et mettra à jour le solde)
+                // LE SERVICE PREND LE RELAIS (Il calculera le retard et mettra à jour le solde)
                 AttendanceService.getInstance().addAttendanceRecord(nouveauRecord);
             } else {
                 // Modification de l'existant
                 recordActuel.setTime(dateHeureComplete);
                 recordActuel.setCheckIn(isCheckIn);
 
-                // ✅ LE SERVICE PREND LE RELAIS (Il recalculera tout et ajoutera "Modifié")
+                // LE SERVICE PREND LE RELAIS (Il recalculera tout et ajoutera "Modifié")
                 AttendanceService.getInstance().updateAttendanceRecord(recordActuel);
             }
 

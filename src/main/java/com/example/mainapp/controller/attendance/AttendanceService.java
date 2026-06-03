@@ -1,4 +1,4 @@
-package com.example.mainapp.service;
+package com.example.mainapp.controller.attendance;
 
 import com.example.mainapp.model.AttendanceRecord;
 import com.example.mainapp.model.Company;
@@ -6,10 +6,10 @@ import com.example.mainapp.model.Employee;
 import com.example.mainapp.model.TimeSlot;
 import com.example.mainapp.network.TCPServer;
 import com.example.mainapp.utils.ConfigManager;
+import com.example.mainapp.utils.PersistenceManager;
 
 import java.time.DayOfWeek;
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -29,9 +29,6 @@ public class AttendanceService {
         return instance;
     }
 
-    // ==========================================
-    // 🧠 LOGIQUE MÉTIER CENTRALISÉE
-    // ==========================================
     public void evaluerEtAppliquerPointage(AttendanceRecord record) {
         Employee emp = record.getEmployee();
 
@@ -68,7 +65,7 @@ public class AttendanceService {
                         emp.setSoldeMinutes(emp.getSoldeMinutes() + diffMinutes);
                     } else if (diffMinutes < -tolerance) {
                         record.setStatus("Incident : Départ anticipé");
-                        emp.setSoldeMinutes(emp.getSoldeMinutes() + diffMinutes); // diff est négatif
+                        emp.setSoldeMinutes(emp.getSoldeMinutes() + diffMinutes);
                     } else {
                         record.setStatus("Normal");
                     }
@@ -92,30 +89,23 @@ public class AttendanceService {
         saveData();
     }
 
-    // ==========================================
-    // 🟧 UPDATE (Mettre à jour)
-    // ==========================================
     public void updateAttendanceRecord(AttendanceRecord record) throws Exception {
         if (record == null) throw new Exception("Le pointage à modifier est invalide.");
 
-        // 1. Mise à jour de l'état du pointage spécifique
         evaluerEtAppliquerPointage(record);
         record.setStatus(record.getStatus() + " (Modifié)");
 
-        // 2. RECALCUL COMPLET DU SOLDE DE L'EMPLOYÉ
         Employee emp = record.getEmployee();
-
 
         List<AttendanceRecord> historiqueComplet = this.company.getAttendanceRecords().stream()
                 .filter(r -> r.getEmployee() != null && r.getEmployee().getId().equals(emp.getId()))
                 .collect(java.util.stream.Collectors.toList());
 
-        // On lance le recalcul intelligent
         emp.recalculerSolde(historiqueComplet);
 
-        // 3. Sauvegarde de l'état global
         saveData();
     }
+
     public List<AttendanceRecord> getAllAttendanceRecords() { return company.getAttendanceRecords(); }
 
     public void deleteAttendanceRecord(AttendanceRecord record) throws Exception {
@@ -127,7 +117,7 @@ public class AttendanceService {
 
     private void saveData() {
         try {
-            com.example.mainapp.service.PersistenceManager.saveData(this.company);
+            PersistenceManager.saveData(this.company);
             System.out.println("LOG : Base de données mise à jour sur le disque.");
         } catch (Exception e) {
             System.err.println("Erreur sauvegarde : " + e.getMessage());

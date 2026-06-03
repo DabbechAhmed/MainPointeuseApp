@@ -1,5 +1,8 @@
 package com.example.mainapp.controller;
 
+import com.example.mainapp.controller.attendance.AttendanceController;
+import com.example.mainapp.controller.departement.DepartmentController;
+import com.example.mainapp.controller.employee.EmployeeController;
 import com.example.mainapp.model.Company;
 import com.example.mainapp.network.TCPServer;
 import javafx.fxml.FXML;
@@ -11,30 +14,22 @@ public class MainController {
     public static MainController instance;
     private Company company;
 
-    // ========================================================
-    // 🔀 GESTION DES PAGES (VUES FXML)
-    // ========================================================
     @FXML private VBox viewDashboard;
     @FXML private VBox viewEmployees;
     @FXML private VBox viewDepartments;
     @FXML private VBox viewPointages;
     @FXML private VBox viewSettings;
 
-    // ✅ Sous-contrôleurs injectés
     @FXML private EmployeeController viewEmployeesController;
     @FXML private DepartmentController viewDepartmentsController;
     @FXML private AttendanceController viewPointagesController;
-    @FXML private SettingsController viewSettingsController; // Injection du nouveau contrôleur
+    @FXML private SettingsController viewSettingsController;
 
-    // ========================================================
-    // 📊 ÉLÉMENTS DE L'INTERFACE (Dashboard)
-    // ========================================================
     @FXML private Label statusLabel;
     @FXML private Label employeeCountLabel;
     @FXML private Label pointagesTodayLabel;
     @FXML private Label incidentsLabel;
 
-    // ✅ BOUTONS DU MENU
     @FXML private Button btnDashboard;
     @FXML private Button btnEmployees;
     @FXML private Button btnDepartments;
@@ -54,9 +49,6 @@ public class MainController {
         loadDataIntoTables();
     }
 
-    // ========================================================
-    // 📈 LOGIQUE DU DASHBOARD
-    // ========================================================
     public void rafraichirDashboard() {
         this.company = TCPServer.getInstance().getCompany();
         if (this.company == null) return;
@@ -102,10 +94,6 @@ public class MainController {
         rafraichirDashboard();
     }
 
-    // ========================================================
-    // 🧭 NAVIGATION
-    // ========================================================
-
     private void setActiveButton(Button clickedButton) {
         if (btnDashboard != null) btnDashboard.getStyleClass().remove("active");
         if (btnEmployees != null) btnEmployees.getStyleClass().remove("active");
@@ -136,17 +124,34 @@ public class MainController {
         switchView(viewDashboard, btnDashboard);
     }
 
-    @FXML protected void showEmployees() { switchView(viewEmployees, btnEmployees); }
-    @FXML protected void showDepartments() { switchView(viewDepartments, btnDepartments); }
-    @FXML protected void showPointages() { switchView(viewPointages, btnPointages); }
-    @FXML protected void showSettings() { switchView(viewSettings, btnSettings); }
+    @FXML
+    protected void showEmployees() {
+        switchView(viewEmployees, btnEmployees);
+    }
 
-    // ========================================================
-    // ⚙️ ACTIONS DIVERSES
-    // ========================================================
+    @FXML
+    protected void showDepartments() {
+        switchView(viewDepartments, btnDepartments);
+    }
+
+    @FXML
+    protected void showPointages() {
+        switchView(viewPointages, btnPointages);
+    }
+
+    @FXML
+    protected void showSettings() {
+        switchView(viewSettings, btnSettings);
+    }
+
     @FXML
     protected void handleRefresh() {
         statusLabel.setText("Rafraîchissement des données...");
         rafraichirUI();
     }
+
+    public void cleanup() {
+        instance = null;
+    }
+
 }

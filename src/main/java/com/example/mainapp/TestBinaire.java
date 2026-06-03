@@ -2,7 +2,7 @@ package com.example.mainapp;
 
 import com.example.mainapp.model.*;
 import com.example.mainapp.enums.Status;
-import com.example.mainapp.service.PersistenceManager;
+import com.example.mainapp.utils.PersistenceManager;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;

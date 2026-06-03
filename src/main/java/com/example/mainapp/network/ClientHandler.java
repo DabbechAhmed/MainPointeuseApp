@@ -6,8 +6,8 @@ import com.example.mainapp.model.Employee;
 import com.example.mainapp.model.AttendanceRecord;
 import com.example.dto.EmployeeDTO;
 import com.example.dto.CheckPoint;
-import com.example.mainapp.service.AttendanceService; // ✅ NOUVEL IMPORT
-import com.example.mainapp.service.PersistenceManager;
+import com.example.mainapp.controller.attendance.AttendanceService; // ✅ NOUVEL IMPORT
+import com.example.mainapp.utils.PersistenceManager;
 import javafx.application.Platform;
 
 import java.io.ObjectInputStream;
@@ -99,11 +99,16 @@ public class ClientHandler implements Runnable {
                     oos.flush();
 
                     // 4. MAGIE JAVAFX : Actualisation en temps réel de la table et du Dashboard !
-                    Platform.runLater(() -> {
-                        if (MainController.instance != null) {
-                            MainController.instance.rafraichirUI();
-                        }
-                    });
+                    try {
+                        Platform.runLater(() -> {
+                            if (MainController.instance != null) {
+                                MainController.instance.rafraichirUI();
+                            }
+                        });
+                    } catch (IllegalStateException e) {
+                        // L'application est en cours d'arrêt, ignore cette erreur
+                        System.out.println("ℹ️ Application en cours d'arrêt, actualisation ignorée.");
+                    }
                 }
             }
 

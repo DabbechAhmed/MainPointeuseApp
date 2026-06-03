@@ -6,7 +6,7 @@ import java.util.Properties;
 public class ConfigManager {
 
     private static final String CONFIG_FILE = "server_config.properties";
-    private Properties properties;
+    private final Properties properties;
 
     public ConfigManager() {
         properties = new Properties();
@@ -27,12 +27,16 @@ public class ConfigManager {
         try (OutputStream output = new FileOutputStream(CONFIG_FILE)) {
             properties.store(output, "Server Configuration");
         } catch (IOException io) {
-            System.err.println("❌ Erreur de sauvegarde config : " + io.getMessage());
+            System.err.println("Erreur de sauvegarde du fichier de configuration : " + io.getMessage());
         }
     }
 
     public int getServerPort() {
-        return Integer.parseInt(properties.getProperty("server.port", "8080"));
+        try {
+            return Integer.parseInt(properties.getProperty("server.port", "8080"));
+        } catch (NumberFormatException e) {
+            return 8080;
+        }
     }
 
     public void setServerPort(int port) {
@@ -40,7 +44,11 @@ public class ConfigManager {
     }
 
     public int getToleranceMinutes() {
-        return Integer.parseInt(properties.getProperty("tolerance.minutes", "15"));
+        try {
+            return Integer.parseInt(properties.getProperty("tolerance.minutes", "15"));
+        } catch (NumberFormatException e) {
+            return 15;
+        }
     }
 
     public void setToleranceMinutes(int minutes) {

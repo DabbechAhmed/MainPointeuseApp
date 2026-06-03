@@ -1,9 +1,6 @@
-package com.example.mainapp.controller;
+package com.example.mainapp.controller.attendance;
 
 import com.example.mainapp.model.AttendanceRecord;
-import com.example.mainapp.model.Company;
-import com.example.mainapp.network.TCPServer;
-import com.example.mainapp.service.AttendanceService;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -59,7 +56,6 @@ public class AttendanceController {
                 new SimpleStringProperty(cellData.getValue().getStatus())
         );
 
-        // ✅ NOUVEAU : Ajouter l'écouteur de double-clic pour l'édition
         attendanceTable.setRowFactory(tv -> {
             TableRow<AttendanceRecord> row = new TableRow<>();
             row.setOnMouseClicked(event -> {
@@ -73,7 +69,6 @@ public class AttendanceController {
     }
 
     public void rafraichirTableau() {
-
         List<AttendanceRecord> listePointages = AttendanceService.getInstance().getAllAttendanceRecords();
 
         if (listePointages == null) {
@@ -90,22 +85,16 @@ public class AttendanceController {
         System.out.println("Action : Filtrer les pointages");
         if (dateFilter.getValue() != null) {
             System.out.println("Filtrage pour la date : " + dateFilter.getValue().toString());
-            // TODO: Ajouter la logique pour filtrer la liste affichée dans le tableau
         }
     }
 
-    // ========================================================
-    // 🪟 GESTION DE LA FENÊTRE MODALE (NOUVEAU)
-    // ========================================================
-
     @FXML
     protected void handleAddAttendance() {
-        ouvrirFenetreAttendance(null); // Mode création
+        ouvrirFenetreAttendance(null);
     }
 
     private void ouvrirFenetreAttendance(AttendanceRecord record) {
         try {
-            // ⚠️ Assure-toi de créer ce fichier FXML dans tes ressources
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/mainapp/view/attendance-form.fxml"));
             Parent root = loader.load();
 
@@ -119,7 +108,6 @@ public class AttendanceController {
 
             stage.showAndWait();
 
-            // Rafraîchir le tableau automatiquement à la fermeture de la modale
             rafraichirTableau();
 
         } catch (Exception e) {

@@ -1,11 +1,10 @@
-package com.example.mainapp.controller;
+package com.example.mainapp.controller.employee;
 
 import com.example.mainapp.enums.Status;
 import com.example.mainapp.model.Department;
 import com.example.mainapp.model.Employee;
 import com.example.mainapp.model.Schedule;
 import com.example.mainapp.model.TimeSlot;
-import com.example.mainapp.service.EmployeeService; // ✅ NOUVEL IMPORT
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -95,9 +94,6 @@ public class EmployeeFormController {
             planning.definirJournee(DayOfWeek.THURSDAY, convertirTexteEnTimeSlot(jeudiField.getText()));
             planning.definirJournee(DayOfWeek.FRIDAY, convertirTexteEnTimeSlot(vendrediField.getText()));
 
-            // ==========================================
-            // ✅ APPEL AU SERVICE POUR SAUVEGARDER
-            // ==========================================
             if (isCreationMode) {
                 EmployeeService.getInstance().creerEmploye(employeeActuel);
             } else {
@@ -114,7 +110,7 @@ public class EmployeeFormController {
             alert.setContentText("Veuillez respecter le format HH:mm - HH:mm (ex: 08:00 - 17:00).\n" + e.getMessage());
             alert.showAndWait();
         } catch (Exception e) {
-            // ✅ NOUVEAU : Intercepte les erreurs métier du service (ex: nom vide)
+
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Erreur d'enregistrement");
             alert.setHeaderText("Impossible de sauvegarder l'employé");
@@ -141,7 +137,7 @@ public class EmployeeFormController {
 
     @FXML
     private void handleDelete() {
-        // ✅ NOUVEAU : Demande de confirmation et appel au service
+
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Confirmation de suppression");
         confirm.setHeaderText("Supprimer définitivement cet employé ?");

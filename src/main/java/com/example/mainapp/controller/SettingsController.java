@@ -18,11 +18,9 @@ public class SettingsController {
     public void initialize() {
         this.config = new ConfigManager();
 
-        // 1. Charger les valeurs depuis le fichier
         serverPortField.setText(String.valueOf(config.getServerPort()));
         toleranceField.setText(String.valueOf(config.getToleranceMinutes()));
 
-        // 2. Détecter l'adresse IP de la machine sur le réseau local
         try {
             String ipMachine = InetAddress.getLocalHost().getHostAddress();
             serverIpField.setText(ipMachine);
@@ -42,11 +40,11 @@ public class SettingsController {
             config.saveConfig();
 
             Alert alert = new Alert(Alert.AlertType.INFORMATION,
-                    "✅ Paramètres sauvegardés avec succès !\n(Le changement de port nécessite un redémarrage de l'application)");
+                    "Paramètres sauvegardés avec succès !\n(Le changement de port nécessite un redémarrage de l'application)");
             alert.showAndWait();
 
         } catch (NumberFormatException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR, "❌ Le port et la tolérance doivent être des nombres entiers !");
+            Alert alert = new Alert(Alert.AlertType.ERROR, "Le port et la tolérance doivent être des nombres entiers !");
             alert.showAndWait();
         }
     }

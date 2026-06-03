@@ -1,7 +1,6 @@
-package com.example.mainapp.controller;
+package com.example.mainapp.controller.departement;
 
 import com.example.mainapp.model.Department;
-import com.example.mainapp.service.DepartmentService;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.Stage;

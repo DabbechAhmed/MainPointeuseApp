@@ -1,4 +1,4 @@
-package com.example.mainapp.service;
+package com.example.mainapp.utils;
 
 import com.example.mainapp.model.Company;
 
@@ -15,9 +15,9 @@ public class PersistenceManager {
     public static void saveData(Company company) {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(DATA_FILE))) {
             oos.writeObject(company);
-            System.out.println("✅ Données de l'entreprise sauvegardées avec succès.");
+            System.out.println("Données de l'entreprise sauvegardées avec succès.");
         } catch (IOException e) {
-            System.err.println("❌ Erreur lors de la sauvegarde : " + e.getMessage());
+            System.err.println("Erreur lors de la sauvegarde : " + e.getMessage());
         }
     }
 
@@ -35,10 +35,10 @@ public class PersistenceManager {
 
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
             Company loadedCompany = (Company) ois.readObject();
-            System.out.println("✅ Données chargées avec succès.");
+            System.out.println("Données chargées avec succès.");
             return loadedCompany;
         } catch (IOException | ClassNotFoundException e) {
-            System.err.println("❌ Erreur lors du chargement : " + e.getMessage());
+            System.err.println("Erreur lors du chargement : " + e.getMessage());
             // En cas d'erreur (fichier corrompu), on repart sur une entreprise vierge
             return new Company("Polytech Tours Pointeuse (Recovery)");
         }

@@ -1,8 +1,9 @@
 package com.example.mainapp;
 
+import com.example.mainapp.controller.MainController;
 import com.example.mainapp.model.Company;
 import com.example.mainapp.network.TCPServer;
-import com.example.mainapp.service.PersistenceManager;
+import com.example.mainapp.utils.PersistenceManager;
 import com.example.mainapp.utils.ConfigManager;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -42,6 +43,13 @@ public class MainApplication extends Application {
     @Override
     public void stop() throws Exception {
         System.out.println("Stopping application...");
+
+        // Nettoyer MainController
+        MainController mainController = MainController.instance;
+        if (mainController != null) {
+            mainController.cleanup();
+        }
+
         // Extinction propre du serveur
         TCPServer.getInstance().arreter();
         super.stop();
