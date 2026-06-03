@@ -8,14 +8,12 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.DatePicker;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableRow;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class AttendanceController {
 
@@ -28,6 +26,8 @@ public class AttendanceController {
     @FXML private TableColumn<AttendanceRecord, String> colAttStatut;
 
     @FXML private DatePicker dateFilter;
+
+    @FXML private ComboBox<String> statusFilter;
 
     @FXML
     public void initialize() {
@@ -66,6 +66,38 @@ public class AttendanceController {
             });
             return row;
         });
+        if( statusFilter!=null) statusFilter.setValue("Tous les statuts");
+    }
+
+
+
+@FXML
+protected void handleClearDateFilter() {
+    dateFilter.setValue(null);
+    handleFilterAttendance();
+}
+
+    @FXML
+    protected void handleFilterAttendance() {
+        System.out.println("Action : Filtrer les pointages");
+
+        List<AttendanceRecord> listePointages = AttendanceService.getInstance().getAllAttendanceRecords();
+
+        if (dateFilter.getValue() != null) {
+            listePointages = listePointages.stream()
+                .filter(r -> r.getTime().toLocalDate().equals(dateFilter.getValue()))
+                .collect(Collectors.toList());
+        }
+
+        String selectedStatus = statusFilter.getValue();
+        if (selectedStatus != null && !selectedStatus.equals("Tous les statuts")) {
+            listePointages = listePointages.stream()
+                .filter(r -> r.getStatus().contains(selectedStatus))
+                .collect(Collectors.toList());
+        }
+
+        ObservableList<AttendanceRecord> attList = FXCollections.observableArrayList(listePointages);
+        attendanceTable.setItems(attList);
     }
 
     public void rafraichirTableau() {
@@ -80,13 +112,7 @@ public class AttendanceController {
         attendanceTable.refresh();
     }
 
-    @FXML
-    protected void handleFilterAttendance() {
-        System.out.println("Action : Filtrer les pointages");
-        if (dateFilter.getValue() != null) {
-            System.out.println("Filtrage pour la date : " + dateFilter.getValue().toString());
-        }
-    }
+
 
     @FXML
     protected void handleAddAttendance() {

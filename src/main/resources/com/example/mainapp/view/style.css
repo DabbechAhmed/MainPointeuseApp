@@ -125,7 +125,29 @@
     -fx-alignment: CENTER;
 }
 
+.btn-secondary {
+    -fx-background-color: #6c757d;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 20;
+    -fx-padding: 8 20;
+    -fx-cursor: hand;
+}
+.btn-clear {
+    -fx-background-color: #dc3545;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 5;
+    -fx-padding: 5 10;
+    -fx-cursor: hand;
+}
 
+.btn-clear:hover {
+    -fx-background-color: #c82333;
+}
+.btn-secondary:hover {
+    -fx-background-color: #5a6268;
+}
 .menu-button.active {
     -fx-background-color: #d0e4ff; /* Un fond bleuté très léger, ajuste selon tes goûts */
     -fx-text-fill: #0056b3;        /* Texte bleu foncé */

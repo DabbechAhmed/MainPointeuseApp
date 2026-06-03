@@ -9,6 +9,10 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Représente un employé avec ses informations personnelles, son statut,
+ * son service, son planning et son solde de minutes.
+ */
 public class Employee implements Serializable {
 
     @Serial
@@ -22,6 +26,9 @@ public class Employee implements Serializable {
     private Schedule schedule;
     private long soldeMinutes;
 
+    /**
+     * Constructeur par défaut. Initialise les champs avec des valeurs par défaut.
+     */
     public Employee() {
         this.id = UUID.randomUUID();
         this.name = "";
@@ -31,6 +38,13 @@ public class Employee implements Serializable {
         this.soldeMinutes = 0L;
     }
 
+    /**
+     * Constructeur avec informations principales.
+     * @param department département d'affectation
+     * @param name prénom
+     * @param surname nom de famille
+     * @param status statut de l'employé
+     */
     public Employee(Department department, String name, String surname, Status status) {
         this.id = UUID.randomUUID();
         this.department = department;
@@ -41,93 +55,65 @@ public class Employee implements Serializable {
         this.soldeMinutes = 0L;
     }
 
-    // ==========================================
-    // MÉTHODES MÉTIER (LA CORRECTION)
-    // ==========================================
-
+    /**
+     * Modifie le solde de minutes en ajoutant la valeur fournie.
+     * @param minutes nombre de minutes à ajouter (peut être négatif)
+     */
     public void modifierSoldeMinutes(long minutes) {
         this.soldeMinutes += minutes;
     }
 
-    /**
-     * Recalcule le solde à partir de zéro pour éviter les désynchronisations.
-     */
-    public void recalculerSolde(List<AttendanceRecord> historiquePointages) {
-        // 1. On remet les compteurs à zéro
-        this.soldeMinutes = 0L;
 
-        if (historiquePointages == null || historiquePointages.isEmpty()) {
-            return;
-        }
-
-        // 2. On trie les pointages du plus ancien au plus récent
-        historiquePointages.sort(Comparator.comparing(AttendanceRecord::getTime));
-
-        // 3. On regroupe les pointages par jour (LocalDate)
-        Map<LocalDate, List<AttendanceRecord>> pointagesParJour = historiquePointages.stream()
-                .collect(Collectors.groupingBy(r -> r.getTime().toLocalDate()));
-
-        // 4. On calcule le solde jour par jour
-        // Dans ta méthode recalculerSolde(List<AttendanceRecord> historiquePointages) :
-
-        for (Map.Entry<LocalDate, List<AttendanceRecord>> entry : pointagesParJour.entrySet()) {
-            LocalDate jour = entry.getKey();
-            List<AttendanceRecord> pointagesDuJour = entry.getValue();
-
-            // 1. On calcule le temps réellement travaillé ce jour-là
-            long minutesTravailleesCeJour = 0L;
-            for (int i = 0; i < pointagesDuJour.size() - 1; i += 2) {
-                AttendanceRecord entree = pointagesDuJour.get(i);
-                AttendanceRecord sortie = pointagesDuJour.get(i + 1);
-                if (entree.isCheckIn() && !sortie.isCheckIn()) {
-                    minutesTravailleesCeJour += Duration.between(entree.getTime(), sortie.getTime()).toMinutes();
-                }
-            }
-
-            // 2. LA VERSION DYNAMIQUE : On demande à l'objet Schedule de l'employé
-            // combien d'heures il est censé faire ce jour spécifique (ex: lundi, mardi...)
-            long minutesAttendues = this.schedule.getMinutesPourCeJour(jour.getDayOfWeek());
-
-            // 3. On met à jour le solde (différence réelle)
-            this.soldeMinutes += (minutesTravailleesCeJour - minutesAttendues);
-        }
-    }
-
-    // ==========================================
-    // GETTERS & SETTERS COMPLETS
-    // ==========================================
-
+    /** Retourne l'identifiant de l'employé. */
     public UUID getId() { return id; }
+    /** Définit l'identifiant de l'employé. */
     public void setId(UUID id) { this.id = id; }
 
+    /** Retourne le département d'affectation. */
     public Department getDepartment() { return department; }
+    /** Définit le département d'affectation. */
     public void setDepartment(Department department) { this.department = department; }
 
+    /** Retourne le prénom. */
     public String getName() { return name; }
+    /** Définit le prénom. */
     public void setName(String name) { this.name = name; }
 
+    /** Retourne le nom de famille. */
     public String getSurname() { return surname; }
+    /** Définit le nom de famille. */
     public void setSurname(String surname) { this.surname = surname; }
 
+    /** Retourne le statut. */
     public Status getStatus() { return status; }
+    /** Définit le statut. */
     public void setStatus(Status status) { this.status = status; }
 
+    /** Retourne le planning. */
     public Schedule getSchedule() { return schedule; }
+    /** Définit le planning. */
     public void setSchedule(Schedule schedule) { this.schedule = schedule; }
 
+    /** Retourne le solde en minutes. */
     public long getSoldeMinutes() { return soldeMinutes; }
+    /** Définit le solde en minutes. */
     public void setSoldeMinutes(long soldeMinutes) { this.soldeMinutes = soldeMinutes; }
 
-    // ==========================================
-    // MÉTHODES REDÉFINIES
-    // ==========================================
-
+    /**
+     * Représentation lisible de l'employé.
+     * @return chaîne contenant prénom, nom et département
+     */
     @Override
     public String toString() {
         String deptName = (department != null) ? department.getName() : "Aucun";
         return name + " " + surname + " [" + deptName + "]";
     }
 
+    /**
+     * Égalité basée sur l'identifiant unique.
+     * @param object autre objet
+     * @return true si mêmes identifiants
+     */
     @Override
     public boolean equals(Object object) {
         if (this == object) return true;
@@ -136,11 +122,16 @@ public class Employee implements Serializable {
         return id.equals(emp.id);
     }
 
+    /** Retourne le hash code basé sur l'identifiant. */
     @Override
     public int hashCode() {
         return Objects.hash(id);
     }
 
+    /**
+     * Copie les données d'un autre employé dans cet objet.
+     * @param employee source
+     */
     public void setEmployee(Employee employee) {
         if (employee != null) {
             this.id = employee.id;

@@ -1,61 +1,83 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+                        <?import javafx.scene.control.*?>
+                        <?import javafx.scene.layout.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.example.mainapp.controller.MainController"
-            stylesheets="@style.css" styleClass="root">
+                        <?import org.kordamp.ikonli.javafx.FontIcon?>
+                        <BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+                                    fx:controller="com.example.mainapp.controller.MainController"
+                                    stylesheets="@style.css" styleClass="root">
 
-    <left>
-        <VBox styleClass="sidebar">
-            <VBox styleClass="sidebar-title-container">
-                <Label text="Menu latéral" styleClass="sidebar-title"/>
-            </VBox>
+                            <left>
+                                <VBox styleClass="sidebar">
+                                    <VBox styleClass="sidebar-title-container">
+                                        <Label text="Menu latéral" styleClass="sidebar-title"/>
+                                    </VBox>
 
-            <Button fx:id="btnDashboard" text="Dashboard" onAction="#showDashboard" styleClass="menu-button, active"/>
-            <Button fx:id="btnEmployees" text="Employés" onAction="#showEmployees" styleClass="menu-button"/>
-            <Button fx:id="btnDepartments" text="Départements" onAction="#showDepartments" styleClass="menu-button"/>
-            <Button fx:id="btnPointages" text="Pointages" onAction="#showPointages" styleClass="menu-button"/>
+                                    <Button fx:id="btnDashboard" text="Dashboard" onAction="#showDashboard" styleClass="menu-button, active">
+                                        <graphic>
+                                            <FontIcon iconLiteral="fas-chart-line" iconSize="20" iconColor="white"/>
+                                        </graphic>
+                                    </Button>
+                                    <Button fx:id="btnEmployees" text="Employés" onAction="#showEmployees" styleClass="menu-button">
+                                        <graphic>
+                                            <FontIcon iconLiteral="fas-users" iconSize="20" iconColor="white"/>
+                                        </graphic>
+                                    </Button>
+                                    <Button fx:id="btnDepartments" text="Départements" onAction="#showDepartments" styleClass="menu-button">
+                                        <graphic>
+                                            <FontIcon iconLiteral="fas-building" iconSize="20" iconColor="white"/>
+                                        </graphic>
+                                    </Button>
+                                    <Button fx:id="btnPointages" text="Pointages" onAction="#showPointages" styleClass="menu-button">
+                                        <graphic>
+                                            <FontIcon iconLiteral="fas-clock" iconSize="20" iconColor="white"/>
+                                        </graphic>
+                                    </Button>
 
-            <Region VBox.vgrow="ALWAYS" />
+                                    <Region VBox.vgrow="ALWAYS" />
 
-            <Button fx:id="btnSettings" text="⚙️ Paramètres" onAction="#showSettings" styleClass="menu-button"/>
-            <Label fx:id="statusLabel" text="Prêt" style="-fx-text-fill: #888888; -fx-padding: 20;"/>
-        </VBox>
-    </left>
+                                    <Button fx:id="btnSettings" onAction="#showSettings" styleClass="menu-button">
+                                        <graphic>
+                                            <FontIcon iconLiteral="fas-cog" iconSize="20" iconColor="white"/>
+                                        </graphic>
+                                        <text>Paramètres</text>
+                                    </Button>
+                                    <Label fx:id="statusLabel" text="Prêt" style="-fx-text-fill: #888888; -fx-padding: 20;"/>
+                                </VBox>
+                            </left>
 
-    <center>
-        <StackPane fx:id="contentArea" styleClass="page-container">
+                            <center>
+                                <StackPane fx:id="contentArea" styleClass="page-container">
 
-            <VBox fx:id="viewDashboard" spacing="30" visible="true">
-                <Label text="Application de Pointage - Polytech Tours" styleClass="header-title" maxWidth="Infinity"/>
-                <Label text="Résumé Quotidien" styleClass="section-title"/>
-                <HBox spacing="30">
-                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
-                        <Label text="Nombre d'employés" styleClass="stat-title"/>
-                        <Label fx:id="employeeCountLabel" text="0" styleClass="stat-number"/>
-                    </VBox>
-                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
-                        <Label text="Pointages aujourd'hui" styleClass="stat-title"/>
-                        <Label fx:id="pointagesTodayLabel" text="0" styleClass="stat-number"/>
-                    </VBox>
-                    <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
-                        <Label text="Incidents détectés" styleClass="stat-title"/>
-                        <Label fx:id="incidentsLabel" text="0" styleClass="stat-number"/>
-                    </VBox>
-                </HBox>
-            </VBox>
+                                    <VBox fx:id="viewDashboard" spacing="30" visible="true">
+                                        <Label text="Application de Pointage - Polytech Tours" styleClass="header-title" maxWidth="Infinity"/>
+                                        <Label text="Résumé Quotidien" styleClass="section-title"/>
+                                        <HBox spacing="30">
+                                            <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                                                <Label text="Nombre d'employés" styleClass="stat-title"/>
+                                                <Label fx:id="employeeCountLabel" text="0" styleClass="stat-number"/>
+                                            </VBox>
+                                            <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                                                <Label text="Pointages aujourd'hui" styleClass="stat-title"/>
+                                                <Label fx:id="pointagesTodayLabel" text="0" styleClass="stat-number"/>
+                                            </VBox>
+                                            <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                                                <Label text="Incidents détectés" styleClass="stat-title"/>
+                                                <Label fx:id="incidentsLabel" text="0" styleClass="stat-number"/>
+                                            </VBox>
+                                        </HBox>
+                                    </VBox>
 
-            <fx:include source="employee-view.fxml" fx:id="viewEmployees" visible="false" />
+                                    <fx:include source="employee-view.fxml" fx:id="viewEmployees" visible="false" />
 
-            <fx:include source="department-view.fxml" fx:id="viewDepartments" visible="false" />
+                                    <fx:include source="department-view.fxml" fx:id="viewDepartments" visible="false" />
 
-            <fx:include source="attendance-view.fxml" fx:id="viewPointages" visible="false" />
+                                    <fx:include source="attendance-view.fxml" fx:id="viewPointages" visible="false" />
 
-            <fx:include source="settings-view.fxml" fx:id="viewSettings" visible="false" />
+                                    <fx:include source="settings-view.fxml" fx:id="viewSettings" visible="false" />
 
-        </StackPane>
-    </center>
+                                </StackPane>
+                            </center>
 
-</BorderPane>
+                        </BorderPane>
