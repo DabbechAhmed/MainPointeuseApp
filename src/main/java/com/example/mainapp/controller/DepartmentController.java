@@ -1,7 +1,10 @@
 package com.example.mainapp.controller;
 
+import com.example.mainapp.model.AttendanceRecord;
 import com.example.mainapp.model.Department;
 import com.example.mainapp.network.TCPServer;
+import com.example.mainapp.service.AttendanceService;
+import com.example.mainapp.service.DepartmentService;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -17,6 +20,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.util.List;
 
 public class DepartmentController {
 
@@ -61,13 +65,17 @@ public class DepartmentController {
     }
 
     public void rafraichirTableau() {
-        var company = TCPServer.getInstance().getCompany();
+        List<Department> listeDepartement = DepartmentService.getInstance().recupererTousLesDepartements();
 
-        if (company != null && company.getDepartments() != null) {
-            ObservableList<Department> deptList = FXCollections.observableArrayList(company.getDepartments());
-            departmentTable.setItems(deptList);
-            departmentTable.refresh();
+        if (listeDepartement == null) {
+            listeDepartement = new java.util.ArrayList<>();
         }
+
+
+        ObservableList<Department> deptList = FXCollections.observableArrayList(listeDepartement);
+        departmentTable.setItems(deptList);
+        departmentTable.refresh();
+
     }
 
     @FXML

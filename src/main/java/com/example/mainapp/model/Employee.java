@@ -4,8 +4,10 @@ import com.example.mainapp.enums.Status;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.Objects;
-import java.util.UUID;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Employee implements Serializable {
 
@@ -40,11 +42,55 @@ public class Employee implements Serializable {
     }
 
     // ==========================================
-    // MÉTHODES MÉTIER
+    // MÉTHODES MÉTIER (LA CORRECTION)
     // ==========================================
 
     public void modifierSoldeMinutes(long minutes) {
         this.soldeMinutes += minutes;
+    }
+
+    /**
+     * Recalcule le solde à partir de zéro pour éviter les désynchronisations.
+     */
+    public void recalculerSolde(List<AttendanceRecord> historiquePointages) {
+        // 1. On remet les compteurs à zéro
+        this.soldeMinutes = 0L;
+
+        if (historiquePointages == null || historiquePointages.isEmpty()) {
+            return;
+        }
+
+        // 2. On trie les pointages du plus ancien au plus récent
+        historiquePointages.sort(Comparator.comparing(AttendanceRecord::getTime));
+
+        // 3. On regroupe les pointages par jour (LocalDate)
+        Map<LocalDate, List<AttendanceRecord>> pointagesParJour = historiquePointages.stream()
+                .collect(Collectors.groupingBy(r -> r.getTime().toLocalDate()));
+
+        // 4. On calcule le solde jour par jour
+        // Dans ta méthode recalculerSolde(List<AttendanceRecord> historiquePointages) :
+
+        for (Map.Entry<LocalDate, List<AttendanceRecord>> entry : pointagesParJour.entrySet()) {
+            LocalDate jour = entry.getKey();
+            List<AttendanceRecord> pointagesDuJour = entry.getValue();
+
+            // 1. On calcule le temps réellement travaillé ce jour-là
+            long minutesTravailleesCeJour = 0L;
+            for (int i = 0; i < pointagesDuJour.size() - 1; i += 2) {
+                AttendanceRecord entree = pointagesDuJour.get(i);
+                AttendanceRecord sortie = pointagesDuJour.get(i + 1);
+                if (entree.isCheckIn() && !sortie.isCheckIn()) {
+                    minutesTravailleesCeJour += Duration.between(entree.getTime(), sortie.getTime()).toMinutes();
+                }
+            }
+
+            // 2. LA VERSION DYNAMIQUE : On demande à l'objet Schedule de l'employé
+            // combien d'heures il est censé faire ce jour spécifique (ex: lundi, mardi...)
+            long minutesAttendues = this.schedule.getMinutesPourCeJour(jour.getDayOfWeek());
+
+            // 3. On met à jour le solde (différence réelle)
+            this.soldeMinutes += (minutesTravailleesCeJour - minutesAttendues);
+        }
     }
 
     // ==========================================
@@ -86,7 +132,6 @@ public class Employee implements Serializable {
     public boolean equals(Object object) {
         if (this == object) return true;
         if (object == null || this.getClass() != object.getClass()) return false;
-
         Employee emp = (Employee) object;
         return id.equals(emp.id);
     }

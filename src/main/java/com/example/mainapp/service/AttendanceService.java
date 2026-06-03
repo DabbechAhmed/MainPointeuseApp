@@ -81,18 +81,11 @@ public class AttendanceService {
         }
     }
 
-    // ==========================================
-    // 🟩 CREATE (Ajouter)
-    // ==========================================
     public void addAttendanceRecord(AttendanceRecord record) throws Exception {
         if (record == null || record.getEmployee() == null) {
             throw new Exception("Le pointage est invalide.");
         }
-        if (record.getTime() != null && record.getTime().isAfter(LocalDateTime.now())) {
-            throw new Exception("On ne peut pas pointer dans le futur !");
-        }
 
-        // ✅ APPEL DU CERVEAU AVANT DE SAUVEGARDER
         evaluerEtAppliquerPointage(record);
 
         company.getAttendanceRecords().add(record);
@@ -105,13 +98,24 @@ public class AttendanceService {
     public void updateAttendanceRecord(AttendanceRecord record) throws Exception {
         if (record == null) throw new Exception("Le pointage à modifier est invalide.");
 
-        // ✅ ON RECALCULE SI MODIFIÉ
+        // 1. Mise à jour de l'état du pointage spécifique
         evaluerEtAppliquerPointage(record);
         record.setStatus(record.getStatus() + " (Modifié)");
 
+        // 2. RECALCUL COMPLET DU SOLDE DE L'EMPLOYÉ
+        Employee emp = record.getEmployee();
+
+
+        List<AttendanceRecord> historiqueComplet = this.company.getAttendanceRecords().stream()
+                .filter(r -> r.getEmployee() != null && r.getEmployee().getId().equals(emp.getId()))
+                .collect(java.util.stream.Collectors.toList());
+
+        // On lance le recalcul intelligent
+        emp.recalculerSolde(historiqueComplet);
+
+        // 3. Sauvegarde de l'état global
         saveData();
     }
-
     public List<AttendanceRecord> getAllAttendanceRecords() { return company.getAttendanceRecords(); }
 
     public void deleteAttendanceRecord(AttendanceRecord record) throws Exception {

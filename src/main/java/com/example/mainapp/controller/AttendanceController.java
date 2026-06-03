@@ -3,6 +3,7 @@ package com.example.mainapp.controller;
 import com.example.mainapp.model.AttendanceRecord;
 import com.example.mainapp.model.Company;
 import com.example.mainapp.network.TCPServer;
+import com.example.mainapp.service.AttendanceService;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -72,15 +73,16 @@ public class AttendanceController {
     }
 
     public void rafraichirTableau() {
-        Company company = TCPServer.getInstance().getCompany();
-        if (company != null) {
-            List<AttendanceRecord> listePointages = company.getAttendanceRecords();
-            if (listePointages == null) listePointages = new java.util.ArrayList<>();
 
-            ObservableList<AttendanceRecord> attList = FXCollections.observableArrayList(listePointages);
-            attendanceTable.setItems(attList);
-            attendanceTable.refresh();
+        List<AttendanceRecord> listePointages = AttendanceService.getInstance().getAllAttendanceRecords();
+
+        if (listePointages == null) {
+            listePointages = new java.util.ArrayList<>();
         }
+
+        ObservableList<AttendanceRecord> attList = FXCollections.observableArrayList(listePointages);
+        attendanceTable.setItems(attList);
+        attendanceTable.refresh();
     }
 
     @FXML

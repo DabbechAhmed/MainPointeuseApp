@@ -3,6 +3,7 @@ package com.example.mainapp.model;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.DayOfWeek;
+import java.time.temporal.ChronoUnit;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;
@@ -71,5 +72,16 @@ public class Schedule implements Serializable {
             sb.append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
         }
         return sb.toString();
+    }
+
+    public long getMinutesPourCeJour(DayOfWeek dayOfWeek) {
+        if (dayOfWeek == null) {
+            throw new IllegalArgumentException("Le jour ne peut pas être null");
+        }
+        TimeSlot timeSlot = horaires.get(dayOfWeek);
+        if (timeSlot == null) {
+            return 0;
+        }
+        return ChronoUnit.MINUTES.between(timeSlot.getArrivee(), timeSlot.getDepart());
     }
 }

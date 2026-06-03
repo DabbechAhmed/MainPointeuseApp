@@ -12,7 +12,7 @@ public class AttendanceRecord implements Serializable {
 
     private UUID id;
 
-    // ✅ On garde la référence vers le VRAI objet Employee
+    // On garde la référence vers le VRAI objet Employee
     private Employee employee;
 
     private LocalDateTime time;
