@@ -131,7 +131,6 @@ public class EmployeeFormController {
 
         LocalTime arrivee = LocalTime.parse(parts[0].trim());
         LocalTime depart = LocalTime.parse(parts[1].trim());
-
         return new TimeSlot(arrivee, depart);
     }
 
@@ -143,11 +142,10 @@ public class EmployeeFormController {
         confirm.setHeaderText("Supprimer définitivement cet employé ?");
         confirm.setContentText("Êtes-vous sûr de vouloir supprimer " + employeeActuel.getName() + " ? Cette action est irréversible.");
 
-        // On attend la réponse de l'utilisateur
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             try {
-                // Si l'utilisateur clique sur OK, on lance la suppression métier
+
                 EmployeeService.getInstance().supprimerEmploye(employeeActuel);
                 System.out.println("Employé supprimé : " + employeeActuel.getId());
                 fermerFenetre();

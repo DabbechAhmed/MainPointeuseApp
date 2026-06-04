@@ -29,19 +29,16 @@ public class AttendanceFormController {
 
     @FXML
     public void initialize() {
-        // 1. Charger la liste de tous les employés disponibles
+
         var company = TCPServer.getInstance().getCompany();
         if (company != null && company.getEmployees() != null) {
             employeeComboBox.setItems(FXCollections.observableArrayList(company.getEmployees()));
         }
 
-        // 2. Initialiser la liste déroulante des types de pointage
         typeComboBox.setItems(FXCollections.observableArrayList("Entrée", "Sortie"));
     }
 
-    /**
-     * Injecte le pointage à modifier ou null pour un ajout
-     */
+
     public void setAttendanceRecord(AttendanceRecord record) {
         if (record == null) {
             this.isCreationMode = true;
@@ -50,7 +47,6 @@ public class AttendanceFormController {
             titleLabel.setText("Nouveau Pointage");
             btnDelete.setVisible(false);
 
-            // Valeurs par défaut pour un ajout rapide
             datePicker.setValue(LocalDate.now());
             heureField.setText(DateTimeFormatter.ofPattern("HH:mm").format(LocalTime.now()));
             typeComboBox.setValue("Entrée");
@@ -62,13 +58,11 @@ public class AttendanceFormController {
             titleLabel.setText("Éditer Pointage");
             btnDelete.setVisible(true);
 
-            // Pré-remplir les champs
             employeeComboBox.setValue(record.getEmployee());
             typeComboBox.setValue(record.isCheckIn() ? "Entrée" : "Sortie");
             datePicker.setValue(record.getTime().toLocalDate());
             heureField.setText(record.getTime().toLocalTime().toString());
 
-            // En général, on empêche de changer l'employé d'un pointage existant par sécurité
             employeeComboBox.setDisable(true);
         }
     }
@@ -76,7 +70,7 @@ public class AttendanceFormController {
     @FXML
     private void handleSave() {
         try {
-            // 1. Validation des champs
+
             Employee employeSelectionne = employeeComboBox.getValue();
             if (employeSelectionne == null) {
                 throw new Exception("Veuillez sélectionner un employé.");
@@ -90,7 +84,7 @@ public class AttendanceFormController {
                 throw new Exception("Veuillez sélectionner le type (Entrée/Sortie).");
             }
 
-            // 2. Parsing et validation de l'heure
+
             LocalTime heureSaisie;
             try {
                 heureSaisie = LocalTime.parse(heureField.getText().trim());
@@ -98,22 +92,16 @@ public class AttendanceFormController {
                 throw new Exception("Format d'heure invalide. Utilisez le format HH:mm (ex: 08:30).");
             }
 
-            // 3. Assemblage de la date et de l'heure
             LocalDateTime dateHeureComplete = LocalDateTime.of(datePicker.getValue(), heureSaisie);
             boolean isCheckIn = typeComboBox.getValue().equals("Entrée");
 
-            // 4. Enregistrement via le Service
             if (isCreationMode) {
                 AttendanceRecord nouveauRecord = new AttendanceRecord(employeSelectionne, dateHeureComplete, isCheckIn);
-
-                // LE SERVICE PREND LE RELAIS (Il calculera le retard et mettra à jour le solde)
                 AttendanceService.getInstance().addAttendanceRecord(nouveauRecord);
             } else {
-                // Modification de l'existant
+
                 recordActuel.setTime(dateHeureComplete);
                 recordActuel.setCheckIn(isCheckIn);
-
-                // LE SERVICE PREND LE RELAIS (Il recalculera tout et ajoutera "Modifié")
                 AttendanceService.getInstance().updateAttendanceRecord(recordActuel);
             }
 

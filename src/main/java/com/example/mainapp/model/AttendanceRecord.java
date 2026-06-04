@@ -12,7 +12,6 @@ public class AttendanceRecord implements Serializable {
 
     private UUID id;
 
-    // On garde la référence vers le VRAI objet Employee
     private Employee employee;
 
     private LocalDateTime time;
@@ -27,9 +26,6 @@ public class AttendanceRecord implements Serializable {
         this.status = "Normal";
     }
 
-    // ==========================================
-    // GETTERS & SETTERS
-    // ==========================================
     public UUID getId() { return id; }
 
     public Employee getEmployee() { return employee; }

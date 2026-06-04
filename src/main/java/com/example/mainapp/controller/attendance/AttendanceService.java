@@ -33,12 +33,6 @@ public class AttendanceService {
         return instance;
     }
 
-    /**
-     * @brief Evaluates the record to assign a descriptive status string.
-     * @details Modifies the record's status text but leaves the mathematical balance calculation
-     * to the recalculateBalance method to prevent duplicate operations.
-     * @param record The attendance record to evaluate
-     */
     public void evaluerEtAppliquerPointage(AttendanceRecord record) {
         Employee emp = record.getEmployee();
 
@@ -84,12 +78,6 @@ public class AttendanceService {
         }
     }
 
-    /**
-     * @brief Recalcule le solde total d'un employé en traitant son historique.
-     * @details Groupe les pointages par jour, associe les entrées et sorties, nettoie les anciens statuts d'erreur corrigés, ignore les journées en cours, et applique la tolérance.
-     * @param emp L'employé dont le solde doit être recalculé.
-     * @param attendanceHistory L'historique complet des pointages de l'employé.
-     */
     public void recalculateBalance(Employee emp, List<AttendanceRecord> attendanceHistory) {
         emp.setSoldeMinutes(0L);
 
@@ -97,10 +85,8 @@ public class AttendanceService {
             return;
         }
 
-        // Tri chronologique
         attendanceHistory.sort(Comparator.comparing(AttendanceRecord::getTime));
 
-        // Regroupement par jour
         Map<LocalDate, List<AttendanceRecord>> recordsByDay = attendanceHistory.stream()
                 .collect(Collectors.groupingBy(r -> r.getTime().toLocalDate()));
 
@@ -110,7 +96,6 @@ public class AttendanceService {
 
         LocalDate today = LocalDate.now();
 
-        // Analyse jour par jour
         for (Map.Entry<LocalDate, List<AttendanceRecord>> entry : recordsByDay.entrySet()) {
             LocalDate date = entry.getKey();
             List<AttendanceRecord> dailyRecords = entry.getValue();
@@ -119,7 +104,6 @@ public class AttendanceService {
             boolean missingCheckoutAnomaly = false;
             boolean shiftInProgress = false;
 
-            // Boucle d'association Entrée/Sortie
             for (int i = 0; i < dailyRecords.size(); i++) {
                 AttendanceRecord current = dailyRecords.get(i);
 
@@ -128,14 +112,12 @@ public class AttendanceService {
                         AttendanceRecord checkOut = dailyRecords.get(i + 1);
                         workedMinutesToday += Duration.between(current.getTime(), checkOut.getTime()).toMinutes();
 
-                        // Nettoyage : Si on trouve la paire, on efface l'erreur "Sortie manquante" de l'entrée
                         if (current.getStatus() != null && current.getStatus().contains("Sortie manquante")) {
                             evaluerEtAppliquerPointage(current);
                         }
 
-                        i++; // On saute la sortie puisqu'elle est traitée
+                        i++;
                     } else {
-                        // Gestion des oublis vs Journée en cours
                         if (date.isBefore(today)) {
                             missingCheckoutAnomaly = true;
                             current.setStatus("Incident : Sortie manquante");
@@ -146,13 +128,11 @@ public class AttendanceService {
                 }
             }
 
-            // Récupération des heures attendues
             long expectedMinutes = 0L;
             if (emp.getSchedule() != null) {
                 expectedMinutes = emp.getSchedule().getMinutesPourCeJour(date.getDayOfWeek());
             }
 
-            // Application des règles sur le solde
             if (missingCheckoutAnomaly) {
                 newBalance -= expectedMinutes;
             } else if (!shiftInProgress) {
@@ -177,7 +157,6 @@ public class AttendanceService {
         evaluerEtAppliquerPointage(record);
         company.getAttendanceRecords().add(record);
 
-        // Recalculate balance for this specific employee
         Employee emp = record.getEmployee();
         List<AttendanceRecord> employeeHistory = this.company.getAttendanceRecords().stream()
                 .filter(r -> r.getEmployee() != null && r.getEmployee().getId().equals(emp.getId()))
@@ -194,7 +173,6 @@ public class AttendanceService {
         evaluerEtAppliquerPointage(record);
         record.setStatus(record.getStatus() + " (Modifié)");
 
-        // Recalculate balance for this specific employee
         Employee emp = record.getEmployee();
         List<AttendanceRecord> employeeHistory = this.company.getAttendanceRecords().stream()
                 .filter(r -> r.getEmployee() != null && r.getEmployee().getId().equals(emp.getId()))
@@ -214,7 +192,6 @@ public class AttendanceService {
             throw new Exception("Suppression impossible.");
         }
 
-        // Note: It's good practice to recalculate the balance after a deletion too
         Employee emp = record.getEmployee();
         if (emp != null) {
             List<AttendanceRecord> employeeHistory = this.company.getAttendanceRecords().stream()

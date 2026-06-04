@@ -34,7 +34,6 @@ public class SettingsController {
         try {
             int port = Integer.parseInt(serverPortField.getText());
             int tolerance = Integer.parseInt(toleranceField.getText());
-
             config.setServerPort(port);
             config.setToleranceMinutes(tolerance);
             config.saveConfig();

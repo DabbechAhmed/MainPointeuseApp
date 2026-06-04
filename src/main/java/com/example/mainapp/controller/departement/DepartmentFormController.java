@@ -16,9 +16,6 @@ public class DepartmentFormController {
     private Department departmentActuel;
     private boolean isCreationMode;
 
-    /**
-     * Injecte le département à modifier ou null pour un ajout
-     */
     public void setDepartment(Department dept) {
         if (dept == null) {
             this.isCreationMode = true;

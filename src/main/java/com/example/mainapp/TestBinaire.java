@@ -15,17 +15,11 @@ public class TestBinaire {
 
         Company maCompagnie = new Company("Polytech Tours");
 
-        // ==========================================
-        // CRÉATION DES DÉPARTEMENTS
-        // ==========================================
         Department deptIT = new Department("Informatique");
         Department deptRH = new Department("Ressources Humaines");
         Department deptAccounting = new Department("Comptabilité");
         Department deptLogistics = new Department("Logistique");
 
-        // ==========================================
-        // CRÉATION DES EMPLOYÉS - DÉPARTEMENT IT
-        // ==========================================
         Employee emp1 = new Employee(deptIT, "M'SADAA", "Youssef", Status.EMP);
         Employee emp2 = new Employee(deptIT, "DEBBACH", "Ahmed", Status.EMP);
         Employee emp3 = new Employee(deptIT, "RIANI", "Youssef", Status.EMP);
@@ -34,27 +28,19 @@ public class TestBinaire {
         configurerScheduleIT(emp2);
         configurerScheduleIT(emp3);
 
-        // ==========================================
-        // CRÉATION DES EMPLOYÉS - DÉPARTEMENT RH
-        // ==========================================
+
         Employee emp4 = new Employee(deptRH, "BEN ABDA", "Mohamed Yassine", Status.HRR);
         Employee emp5 = new Employee(deptRH, "SOPHIE", "Laurent", Status.EMP);
 
         configurerScheduleRH(emp4);
         configurerScheduleRH(emp5);
 
-        // ==========================================
-        // CRÉATION DES EMPLOYÉS - DÉPARTEMENT COMPTABILITÉ
-        // ==========================================
         Employee emp6 = new Employee(deptAccounting, "MARTIN", "Philippe", Status.EMP);
         Employee emp7 = new Employee(deptAccounting, "DURAND", "Marie", Status.EMP);
 
         configurerScheduleAccounting(emp6);
         configurerScheduleAccounting(emp7);
 
-        // ==========================================
-        // CRÉATION DES EMPLOYÉS - DÉPARTEMENT LOGISTIQUE
-        // ==========================================
         Employee emp8 = new Employee(deptLogistics, "BERNARD", "Pascal", Status.EMP);
         Employee emp9 = new Employee(deptLogistics, "THOMAS", "Nicolas", Status.EMP);
         Employee emp10 = new Employee(deptLogistics, "EL YAHYAOUI", "Youssef", Status.EMP);
@@ -63,9 +49,6 @@ public class TestBinaire {
         configurerScheduleLogistics(emp9);
         configurerScheduleLogistics(emp10);
 
-        // ==========================================
-        // ÉTABLISSEMENT DES LIENS (Départements & Employés)
-        // ==========================================
         maCompagnie.addDepartment(deptIT);
         maCompagnie.addDepartment(deptRH);
         maCompagnie.addDepartment(deptAccounting);
@@ -87,19 +70,13 @@ public class TestBinaire {
         deptLogistics.addEmployee(emp9);
         deptLogistics.addEmployee(emp10);
 
-        // ==========================================
-        // ✅ NOUVEAU : CRÉATION DE POINTAGES DE TEST
-        // ==========================================
         LocalDateTime aujourdhui = LocalDateTime.now();
 
-        // Ahmed arrive à 8h55 (Avance) et repart à 18h05
         AttendanceRecord att1 = new AttendanceRecord(emp2, aujourdhui.withHour(8).withMinute(55), true);
         AttendanceRecord att2 = new AttendanceRecord(emp2, aujourdhui.withHour(18).withMinute(5), false);
 
-        // Mohamed Yassine arrive à 9h15 (Retard)
         AttendanceRecord att3 = new AttendanceRecord(emp4, aujourdhui.withHour(9).withMinute(15), true);
 
-        // Youssef Riani arrive à 7h25
         AttendanceRecord att4 = new AttendanceRecord(emp3, aujourdhui.withHour(7).withMinute(25), true);
 
         maCompagnie.addAttendanceRecord(att1);
@@ -107,7 +84,7 @@ public class TestBinaire {
         maCompagnie.addAttendanceRecord(att3);
         maCompagnie.addAttendanceRecord(att4);
 
-        System.out.println("✅ Données générées avec succès (10 employés, 4 départements, 4 pointages).");
+        System.out.println("Données générées avec succès (10 employés, 4 départements, 4 pointages).");
 
         System.out.println("\n=== 2. TEST DE SAUVEGARDE ===");
         PersistenceManager.saveData(maCompagnie);
@@ -118,25 +95,21 @@ public class TestBinaire {
         System.out.println("\n=== 4. VÉRIFICATION DE L'INTÉGRITÉ ===");
         if (compagnieChargee != null && !compagnieChargee.getEmployees().isEmpty()) {
 
-            System.out.println("🏢 Entreprise : " + compagnieChargee.getName());
-            System.out.println("🏭 Départements : " + compagnieChargee.getDepartments().size());
-            System.out.println("👥 Employés : " + compagnieChargee.getEmployees().size());
+            System.out.println("Entreprise : " + compagnieChargee.getName());
+            System.out.println("Départements : " + compagnieChargee.getDepartments().size());
+            System.out.println("Employés : " + compagnieChargee.getEmployees().size());
 
-            // ✅ Vérification des pointages
-            System.out.println("🕒 Pointages récupérés : " + compagnieChargee.getAttendanceRecords().size());
+            System.out.println("Pointages récupérés : " + compagnieChargee.getAttendanceRecords().size());
             System.out.println("-------------------------------------------------");
 
             for (AttendanceRecord recup : compagnieChargee.getAttendanceRecords()) {
                 String type = recup.isCheckIn() ? "ENTRÉE" : "SORTIE";
-                System.out.println("📍 " + recup.getEmployee().getName() + " | " + type + " à " + recup.getTime().toLocalTime());
+                System.out.println(recup.getEmployee().getName() + " | " + type + " à " + recup.getTime().toLocalTime());
             }
             System.out.println("-------------------------------------------------");
         }
     }
 
-    // ==========================================
-    // MÉTHODES AUXILIAIRES - CONFIGURATION DES SCHEDULES
-    // ==========================================
     private static void configurerScheduleIT(Employee emp) {
         Schedule schedule = emp.getSchedule();
         TimeSlot slot;
