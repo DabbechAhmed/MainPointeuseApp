@@ -16,16 +16,51 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Gestionnaire de communication dédié au traitement d'un client réseau (pointeuse).
+ * <p>
+ * Cette classe implémente {@link Runnable} afin de s'exécuter dans un thread isolé.
+ * Elle se charge de lire les objets sérialisés envoyés par l'émulateur de pointeuse
+ * et d'y répondre. Elle gère deux cas d'usage principaux : la fourniture de la liste
+ * des employés (pour initialiser l'interface de la pointeuse) et le traitement des
+ * nouveaux pointages entrants.
+ * </p>
+ *
+ * @author Youssef M'SADAA, Ahmed DEBBACH, Youssef RIANI, Mohamed Yassine BEN ABDA, Youssef ELYAHYAOUI
+ */
 public class ClientHandler implements Runnable {
 
+    /** Le socket réseau représentant la connexion active avec le client. */
     private final Socket clientSocket;
+
+    /** L'instance centrale de l'entreprise contenant les données métier et les employés. */
     private final Company company;
 
+    /**
+     * Construit un nouveau gestionnaire pour traiter les requêtes d'une connexion entrante.
+     *
+     * @param clientSocket Le socket TCP établi avec la pointeuse cliente.
+     * @param company      Le modèle de données central de l'application.
+     */
     public ClientHandler(Socket clientSocket, Company company) {
         this.clientSocket = clientSocket;
         this.company = company;
     }
 
+    /**
+     * Point d'entrée du thread gérant la communication avec la pointeuse.
+     * <p>
+     * La méthode ouvre les flux d'entrée et de sortie d'objets, puis écoute la requête du client :
+     * <ul>
+     * <li>Si la requête est {@code "GET_EMPLOYEES"}, le serveur renvoie une liste de {@link EmployeeDTO}.</li>
+     * <li>Si la requête est un objet {@link CheckPoint}, le serveur le convertit en {@link AttendanceRecord},
+     * vérifie la validité de l'employé, détecte les éventuels doubles pointages (doublons),
+     * enregistre la donnée via le {@link AttendanceService}, et actualise l'interface graphique en temps réel.</li>
+     * </ul>
+     * La connexion (socket) est systématiquement fermée à la fin du traitement, garantissant
+     * la libération des ressources réseau.
+     * </p>
+     */
     @Override
     public void run() {
         try (ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream());

@@ -8,24 +8,49 @@ import java.io.Serializable;
 import java.util.*;
 
 /**
- * Représente un employé avec ses informations personnelles, son statut,
- * son service, son planning et son solde de minutes.
+ * Représente un employé au sein de l'entreprise et centralise ses données personnelles et professionnelles.
+ * <p>
+ * Cette classe de domaine encapsule l'identité d'un collaborateur (ID, nom, prénom), son statut
+ * hiérarchique, son département d'affectation, ainsi que son planning de travail hebdomadaire.
+ * Elle assure également le suivi en temps réel de son solde d'heures supplémentaires (converti en minutes).
+ * Elle implémente {@link Serializable} pour permettre la persistance des fiches employés sur le disque.
+ * </p>
+ *
+ * @author Youssef M'SADAA, Ahmed DEBBACH, Youssef RIANI, Mohamed Yassine BEN ABDA, Youssef ELYAHYAOUI
  */
 public class Employee implements Serializable {
 
     @Serial
+    /** Identifiant de structure pour la sérialisation et la désérialisation de la classe. */
     private static final long serialVersionUID = 1L;
 
+    /** Identifiant unique et immuable de l'employé, généré sous forme d'UUID. */
     private UUID id;
+
+    /** Le prénom de l'employé. */
     private String name;
+
+    /** Le nom de famille de l'employé. */
     private String surname;
+
+    /** Le statut ou rôle de l'employé au sein de l'organisation (ex: EMP, RH). */
     private Status status;
+
+    /** Le département ou service auquel l'employé est rattaché. */
     private Department department;
+
+    /** Le planning hebdomadaire fixe contenant les horaires théoriques de l'employé. */
     private Schedule schedule;
+
+    /** Le solde cumulé des heures supplémentaires ou de retard, exprimé en minutes (positif ou négatif). */
     private long soldeMinutes;
 
     /**
-     * Constructeur par défaut. Initialise les champs avec des valeurs par défaut.
+     * Constructeur par défaut initialisant un employé vierge avec des valeurs par défaut.
+     * <p>
+     * Génère automatiquement un identifiant unique {@link UUID}, initialise un planning par défaut
+     * et configure le solde initial de minutes à zéro.
+     * </p>
      */
     public Employee() {
         this.id = UUID.randomUUID();
@@ -37,11 +62,16 @@ public class Employee implements Serializable {
     }
 
     /**
-     * Constructeur avec informations principales.
-     * @param department département d'affectation
-     * @param name prénom
-     * @param surname nom de famille
-     * @param status statut de l'employé
+     * Construit un employé complet en injectant ses informations d'identité et d'affectation principales.
+     * <p>
+     * Initialise automatiquement un identifiant unique {@link UUID}, instancie un nouveau planning vide
+     * et configure le solde initial à zéro minute.
+     * </p>
+     *
+     * @param department Le département d'affectation de l'employé.
+     * @param name       Le prénom de l'employé.
+     * @param surname    Le nom de famille de l'employé.
+     * @param status     Le statut ou rôle professionnel attribué.
      */
     public Employee(Department department, String name, String surname, Status status) {
         this.id = UUID.randomUUID();
@@ -54,52 +84,119 @@ public class Employee implements Serializable {
     }
 
     /**
-     * Modifie le solde de minutes en ajoutant la valeur fournie.
-     * @param minutes nombre de minutes à ajouter (peut être négatif)
+     * Modifie le solde de minutes cumulées en ajoutant ou soustrayant la valeur fournie.
+     *
+     * @param minutes Le nombre de minutes à ajouter au solde (peut être négatif en cas de retard).
      */
     public void modifierSoldeMinutes(long minutes) {
         this.soldeMinutes += minutes;
     }
 
-
-    /** Retourne l'identifiant de l'employé. */
+    /**
+     * Récupère l'identifiant unique de l'employé.
+     *
+     * @return L'identifiant {@link UUID} associé à l'employé.
+     */
     public UUID getId() { return id; }
-    /** Définit l'identifiant de l'employé. */
+
+    /**
+     * Définit ou force l'identifiant unique de l'employé.
+     *
+     * @param id Le nouvel identifiant {@link UUID} à appliquer.
+     */
     public void setId(UUID id) { this.id = id; }
 
-    /** Retourne le département d'affectation. */
+    /**
+     * Récupère le département d'affectation de l'employé.
+     *
+     * @return L'objet {@link Department} représentant son service actuel.
+     */
     public Department getDepartment() { return department; }
-    /** Définit le département d'affectation. */
+
+    /**
+     * Affecte l'employé à un nouveau département.
+     *
+     * @param department Le nouveau dossier {@link Department} d'affectation.
+     */
     public void setDepartment(Department department) { this.department = department; }
 
-    /** Retourne le prénom. */
+    /**
+     * Récupère le prénom de l'employé.
+     *
+     * @return La chaîne de caractères correspondant au prénom.
+     */
     public String getName() { return name; }
-    /** Définit le prénom. */
+
+    /**
+     * Modifie le prénom de l'employé.
+     *
+     * @param name Le nouveau prénom à enregistrer.
+     */
     public void setName(String name) { this.name = name; }
 
-    /** Retourne le nom de famille. */
+    /**
+     * Récupère le nom de famille de l'employé.
+     *
+     * @return La chaîne de caractères correspondant au nom de famille.
+     */
     public String getSurname() { return surname; }
-    /** Définit le nom de famille. */
+
+    /**
+     * Modifie le nom de famille de l'employé.
+     *
+     * @param surname Le nouveau nom de famille à enregistrer.
+     */
     public void setSurname(String surname) { this.surname = surname; }
 
-    /** Retourne le statut. */
+    /**
+     * Récupère le statut/rôle professionnel de l'employé.
+     *
+     * @return L'énumération {@link Status} de l'employé.
+     */
     public Status getStatus() { return status; }
-    /** Définit le statut. */
+
+    /**
+     * Modifie le statut/rôle professionnel de l'employé.
+     *
+     * @param status Le nouveau {@link Status} à attribuer.
+     */
     public void setStatus(Status status) { this.status = status; }
 
-    /** Retourne le planning. */
+    /**
+     * Récupère le planning de travail de l'employé.
+     *
+     * @return L'objet {@link Schedule} contenant la grille des horaires de la semaine.
+     */
     public Schedule getSchedule() { return schedule; }
-    /** Définit le planning. */
+
+    /**
+     * Assigne un nouveau planning de travail à l'employé.
+     *
+     * @param schedule Le nouveau planning {@link Schedule} à appliquer.
+     */
     public void setSchedule(Schedule schedule) { this.schedule = schedule; }
 
-    /** Retourne le solde en minutes. */
+    /**
+     * Récupère le solde actuel d'heures supplémentaires, exprimé en minutes.
+     *
+     * @return Le nombre total de minutes en crédit (positif) ou en débit (négatif).
+     */
     public long getSoldeMinutes() { return soldeMinutes; }
-    /** Définit le solde en minutes. */
+
+    /**
+     * Définit directement la valeur absolue du solde de minutes de l'employé.
+     *
+     * @param soldeMinutes Le nouveau total de minutes à affecter au solde.
+     */
     public void setSoldeMinutes(long soldeMinutes) { this.soldeMinutes = soldeMinutes; }
 
     /**
-     * Représentation lisible de l'employé.
-     * @return chaîne contenant prénom, nom et département
+     * Retourne une représentation textuelle lisible et synthétique de l'employé.
+     * <p>
+     * Combine le prénom, le nom et le nom du département d'affectation entre crochets.
+     * </p>
+     *
+     * @return Une chaîne de caractères formatée représentant l'employé.
      */
     @Override
     public String toString() {
@@ -108,9 +205,13 @@ public class Employee implements Serializable {
     }
 
     /**
-     * Égalité basée sur l'identifiant unique.
-     * @param object autre objet
-     * @return true si mêmes identifiants
+     * Évalue l'égalité logique entre cet employé et un autre objet.
+     * <p>
+     * L'égalité est strictement basée sur la comparaison des identifiants uniques (UUID).
+     * </p>
+     *
+     * @param object L'objet à comparer avec l'instance courante.
+     * @return {@code true} si l'objet est un employé doté du même UUID, {@code false} sinon.
      */
     @Override
     public boolean equals(Object object) {
@@ -120,15 +221,28 @@ public class Employee implements Serializable {
         return id.equals(emp.id);
     }
 
-    /** Retourne le hash code basé sur l'identifiant. */
+    /**
+     * Calcule l'empreinte numérique (Hash Code) de l'objet employé.
+     * <p>
+     * Ce hash est calculé exclusivement à partir de l'identifiant unique (UUID)
+     * pour rester en parfaite cohérence avec la méthode {@link #equals(Object)}.
+     * </p>
+     *
+     * @return La valeur entière du hash code.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(id);
     }
 
     /**
-     * Copie les données d'un autre employé dans cet objet.
-     * @param employee source
+     * Effectue une copie complète par valeur des attributs d'un autre employé dans l'instance courante.
+     * <p>
+     * Cette méthode permet de mettre à jour l'ensemble des données d'une fiche employé (y compris son UUID,
+     * son planning et son solde de minutes) sans rompre la référence de l'objet d'origine.
+     * </p>
+     *
+     * @param employee L'employé source contenant les données à copier.
      */
     public void setEmployee(Employee employee) {
         if (employee != null) {

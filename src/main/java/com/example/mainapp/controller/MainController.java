@@ -10,6 +10,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 
+import java.time.LocalDate;
+
 public class MainController {
 
     public static MainController instance;
@@ -58,7 +60,7 @@ public class MainController {
             employeeCountLabel.setText(String.valueOf(company.getEmployees().size()));
         }
 
-        java.time.LocalDate aujourdhui = java.time.LocalDate.now();
+        LocalDate aujourdhui = java.time.LocalDate.now();
         int countPointages = 0;
         int countIncidents = 0;
 

@@ -13,9 +13,11 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -111,6 +113,43 @@ public class AttendanceController {
 
         departmentFilter.setItems(departmentNames);
         departmentFilter.setValue("Tous les départements");
+    }
+    @FXML
+    protected void handleImportCSV() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Sélectionner le fichier CSV de pointages");
+
+        // On limite la sélection uniquement aux fichiers d'extension .csv
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Fichiers CSV (*.csv)", "*.csv")
+        );
+
+        // Ouverture de la boîte de dialogue système
+        File selectedFile = fileChooser.showOpenDialog(attendanceTable.getScene().getWindow());
+
+        if (selectedFile != null) {
+            try {
+                // Exécution de l'importation de masse via notre service
+                AttendanceService.getInstance().importRecordsFromCSV(selectedFile);
+
+                // Rafraîchissement immédiat de ton TableView JavaFX
+                rafraichirTableau();
+
+                // Notification visuelle de succès
+                Alert alert = new Alert(Alert.AlertType.INFORMATION, "L'importation massive des pointages s'est déroulée avec succès !");
+                alert.setTitle("Importation réussie");
+                alert.setHeaderText(null);
+                alert.showAndWait();
+
+            } catch (Exception e) {
+                // En cas de problème (mauvais format de date, ID inexistant...)
+                Alert alert = new Alert(Alert.AlertType.ERROR, "Erreur lors du traitement du fichier CSV : " + e.getMessage());
+                alert.setTitle("Échec de l'importation");
+                alert.setHeaderText("Impossible de traiter les données");
+                alert.showAndWait();
+                e.printStackTrace();
+            }
+        }
     }
 
 @FXML

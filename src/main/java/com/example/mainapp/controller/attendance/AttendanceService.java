@@ -8,10 +8,12 @@ import com.example.mainapp.network.TCPServer;
 import com.example.mainapp.utils.ConfigManager;
 import com.example.mainapp.utils.PersistenceManager;
 
-import java.time.DayOfWeek;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -201,6 +203,82 @@ public class AttendanceService {
         }
 
         saveData();
+    }
+    /**
+     * @brief Import massive attendance records from a CSV file.
+     * @details Lit un fichier CSV contenant des lignes de pointages, associe chaque ligne à un employé
+     * existant de l'entreprise, applique le statut et déclenche un recalcul global des soldes.
+     * @param file Le fichier CSV sélectionné par l'utilisateur.
+     * @throws Exception Si le fichier est introuvable ou mal formé.
+     */
+    public void importRecordsFromCSV(File file) throws Exception {
+        if (file == null || !file.exists()) {
+            throw new Exception("Le fichier CSV est invalide ou introuvable.");
+        }
+
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+            boolean isHeader = true;
+
+            while ((line = br.readLine()) != null) {
+                // On ignore la première ligne correspondant aux entêtes (id_employe;date_heure;type)
+                if (isHeader) {
+                    isHeader = false;
+                    continue;
+                }
+
+                String[] data = line.split(";");
+                if (data.length < 3) {
+                    continue; // Ligne incomplète, on passe à la suivante
+                }
+
+                String empId = data[0].trim();
+                String dateTimeStr = data[1].trim();
+                String typeStr = data[2].trim(); // Attend "IN" ou "OUT"
+
+                // Recherche de l'employé correspondant dans la structure globale de l'entreprise
+                Employee emp = company.getEmployees().stream()
+                        .filter(e -> e.getId() != null && e.getId().toString().equals(empId))
+                        .findFirst()
+                        .orElse(null);
+
+                if (emp == null) {
+                    System.out.println("LOG : Employé avec l'ID " + empId + " introuvable. Ligne ignorée.");
+                    continue;
+                }
+
+                // Instanciation et configuration du nouvel enregistrement
+                AttendanceRecord record = new AttendanceRecord();
+                record.setEmployee(emp);
+                DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+                        .appendOptional(DateTimeFormatter.ISO_LOCAL_DATE_TIME) // Accepte: 2026-06-02T08:00:00
+                        .appendOptional(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmss")) // Accepte: 2026-06-02T080000
+                        .appendOptional(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) // Accepte: 2026-06-02 08:00:00 (Excel classique)
+                        .toFormatter();
+
+                record.setTime(LocalDateTime.parse(dateTimeStr,formatter));
+                record.setCheckIn(typeStr.equalsIgnoreCase("IN"));
+
+                // Évaluation automatique du statut (Normal, Retard, etc.)
+                evaluerEtAppliquerPointage(record);
+
+                // Ajout à la liste de l'entreprise
+                company.getAttendanceRecords().add(record);
+            }
+
+            // ✅ MISE À JOUR DES COMPTEURS : On recalcule l'historique complet de chaque employé
+            // pour intégrer proprement l'impact des nouveaux pointages sur leurs soldes respectifs.
+            for (Employee employee : company.getEmployees()) {
+                List<AttendanceRecord> employeeHistory = company.getAttendanceRecords().stream()
+                        .filter(r -> r.getEmployee() != null && r.getEmployee().getId().equals(employee.getId()))
+                        .collect(Collectors.toList());
+
+                recalculateBalance(employee, employeeHistory);
+            }
+
+            // Persistance des données sur le disque
+            saveData();
+        }
     }
 
     private void saveData() {
