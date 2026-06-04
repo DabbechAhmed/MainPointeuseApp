@@ -1,7 +1,7 @@
 package com.example.mainapp.controller.departement;
 
-import com.example.mainapp.model.Company;
-import com.example.mainapp.model.Department;
+import com.example.mainapp.model.company.Company;
+import com.example.mainapp.model.department.Department;
 import com.example.mainapp.network.TCPServer;
 import com.example.mainapp.utils.PersistenceManager;
 

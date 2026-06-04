@@ -69,13 +69,13 @@
                                         </HBox>
                                     </VBox>
 
-                                    <fx:include source="employee-view.fxml" fx:id="viewEmployees" visible="false" />
+                                    <fx:include source="employee/employee-view.fxml" fx:id="viewEmployees" visible="false" />
 
-                                    <fx:include source="department-view.fxml" fx:id="viewDepartments" visible="false" />
+                                    <fx:include source="department/department-view.fxml" fx:id="viewDepartments" visible="false" />
 
-                                    <fx:include source="attendance-view.fxml" fx:id="viewPointages" visible="false" />
+                                    <fx:include source="attendance/attendance-view.fxml" fx:id="viewPointages" visible="false" />
 
-                                    <fx:include source="settings-view.fxml" fx:id="viewSettings" visible="false" />
+                                    <fx:include source="settings/settings-view.fxml" fx:id="viewSettings" visible="false" />
 
                                 </StackPane>
                             </center>

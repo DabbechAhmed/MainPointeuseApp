@@ -1,6 +1,6 @@
 package com.example.mainapp.controller.departement;
 
-import com.example.mainapp.model.Department;
+import com.example.mainapp.model.department.Department;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -75,7 +75,7 @@ public class DepartmentController {
 
     private void ouvrirFenetreDepartement(Department departement) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/mainapp/view/department-form.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/mainapp/view/department/department-form.fxml"));
             Parent root = loader.load();
 
             DepartmentFormController controller = loader.getController();

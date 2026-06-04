@@ -1,4 +1,6 @@
-package com.example.mainapp.model;
+package com.example.mainapp.model.attendance;
+
+import com.example.mainapp.model.employee.Employee;
 
 import java.io.Serial;
 import java.io.Serializable;

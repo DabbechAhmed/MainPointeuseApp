@@ -1,6 +1,10 @@
 package com.example.mainapp.controller.attendance;
 
-import com.example.mainapp.model.AttendanceRecord;
+import com.example.mainapp.controller.departement.DepartmentService;
+import com.example.mainapp.controller.employee.EmployeeService;
+import com.example.mainapp.model.attendance.AttendanceRecord;
+import com.example.mainapp.model.department.Department;
+import com.example.mainapp.model.employee.Employee;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -28,6 +32,8 @@ public class AttendanceController {
     @FXML private DatePicker dateFilter;
 
     @FXML private ComboBox<String> statusFilter;
+    @FXML private ComboBox<String> employeeFilter;
+    @FXML private ComboBox<String> departmentFilter;
 
     @FXML
     public void initialize() {
@@ -66,10 +72,46 @@ public class AttendanceController {
             });
             return row;
         });
-        if( statusFilter!=null) statusFilter.setValue("Tous les statuts");
+
+        if (statusFilter != null) statusFilter.setValue("Tous les statuts");
+        if (employeeFilter != null) employeeFilter.setValue("Tous les employés");
+        if (departmentFilter != null) departmentFilter.setValue("Tous les départements");
+
+        chargerFiltresEmployee();
+        chargerFiltresdepartement();
     }
 
+    private void chargerFiltresEmployee() {
+        List<Employee> employees = EmployeeService.getInstance().recupererTousLesEmployes();
 
+        ObservableList<String> employeeNames = FXCollections.observableArrayList();
+        employeeNames.add("Tous les employés");
+
+        if (employees != null) {
+            employees.forEach(emp ->
+                employeeNames.add(emp.getName() + " " + emp.getSurname())
+            );
+        }
+
+        employeeFilter.setItems(employeeNames);
+        employeeFilter.setValue("Tous les employés");
+    }
+
+    private void chargerFiltresdepartement() {
+        List<Department> departments = DepartmentService.getInstance().recupererTousLesDepartements();
+
+        ObservableList<String> departmentNames = FXCollections.observableArrayList();
+        departmentNames.add("Tous les départements");
+
+        if (departments != null) {
+            departments.forEach(dept ->
+                departmentNames.add(dept.getName())
+            );
+        }
+
+        departmentFilter.setItems(departmentNames);
+        departmentFilter.setValue("Tous les départements");
+    }
 
 @FXML
 protected void handleClearDateFilter() {
@@ -86,6 +128,24 @@ protected void handleClearDateFilter() {
         if (dateFilter.getValue() != null) {
             listePointages = listePointages.stream()
                 .filter(r -> r.getTime().toLocalDate().equals(dateFilter.getValue()))
+                .collect(Collectors.toList());
+        }
+
+        String selectedEmployee = employeeFilter.getValue();
+        if (selectedEmployee != null && !selectedEmployee.equals("Tous les employés")) {
+            listePointages = listePointages.stream()
+                .filter(r -> {
+                    String nomComplet = r.getEmployee().getName() + " " + r.getEmployee().getSurname();
+                    return nomComplet.equals(selectedEmployee);
+                })
+                .collect(Collectors.toList());
+        }
+
+        String selectedDepartment = departmentFilter.getValue();
+        if (selectedDepartment != null && !selectedDepartment.equals("Tous les départements")) {
+            listePointages = listePointages.stream()
+                .filter(r -> r.getEmployee().getDepartment() != null &&
+                        r.getEmployee().getDepartment().getName().equals(selectedDepartment))
                 .collect(Collectors.toList());
         }
 
@@ -110,8 +170,12 @@ protected void handleClearDateFilter() {
         ObservableList<AttendanceRecord> attList = FXCollections.observableArrayList(listePointages);
         attendanceTable.setItems(attList);
         attendanceTable.refresh();
+        
+        chargerFiltresEmployee();
+        chargerFiltresdepartement();
     }
 
+    
 
 
     @FXML
@@ -121,7 +185,7 @@ protected void handleClearDateFilter() {
 
     private void ouvrirFenetreAttendance(AttendanceRecord record) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/mainapp/view/attendance-form.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/mainapp/view/attendance/attendance-form.fxml"));
             Parent root = loader.load();
 
             AttendanceFormController controller = loader.getController();

@@ -1,8 +1,7 @@
 package com.example.mainapp.controller.employee;
 
-import com.example.mainapp.model.Department;
-import com.example.mainapp.model.Employee;
-import com.example.mainapp.network.TCPServer;
+import com.example.mainapp.model.department.Department;
+import com.example.mainapp.model.employee.Employee;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -18,6 +17,9 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class EmployeeController {
 
@@ -31,6 +33,7 @@ public class EmployeeController {
     @FXML private TableColumn<Employee, String> colEmpSolde;
 
     @FXML private TextField searchField;
+    private ObservableList<Employee> allEmployees;
 
     @FXML
     public void initialize() {
@@ -62,13 +65,15 @@ public class EmployeeController {
             });
             return row;
         });
+
+        searchField.textProperty().addListener((observable,oldValue,newValue )->filtrerEmployes(newValue) );
     }
 
 
 
     private void ouvrirFenetreEmploye(Employee employe) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/mainapp/view/employee-form.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/mainapp/view/employee/employee-form.fxml"));
             Parent root = loader.load();
 
             EmployeeFormController controller = loader.getController();
@@ -86,15 +91,38 @@ public class EmployeeController {
             System.err.println("Erreur lors de l'ouverture du formulaire employé.");
         }
     }
-
     public void rafraichirTableau() {
-        var company = TCPServer.getInstance().getCompany();
-        if (company != null) {
-            ObservableList<Employee> empList = FXCollections.observableArrayList(company.getEmployees());
-            employeeTable.setItems(empList);
-            employeeTable.refresh();
+        List<Employee> listEmployee = EmployeeService.getInstance().recupererTousLesEmployes();
+
+        if (listEmployee == null) {
+            listEmployee = new ArrayList<>();
         }
+
+        allEmployees = FXCollections.observableArrayList(listEmployee);
+        employeeTable.setItems(allEmployees);
+        employeeTable.refresh();
+
+        searchField.clear();
     }
+
+    private void filtrerEmployes(String searchTerm) {
+        if (searchTerm == null || searchTerm.isEmpty()) {
+            employeeTable.setItems(allEmployees);
+            return;
+        }
+
+        String searchLower = searchTerm.toLowerCase();
+
+        List<Employee> employeesFiltres = allEmployees.stream()
+                .filter(emp -> emp.getId().toString().toLowerCase().contains(searchLower)
+                        || emp.getName().toLowerCase().contains(searchLower)
+                        || emp.getSurname().toLowerCase().contains(searchLower)
+                        || (emp.getDepartment() != null && emp.getDepartment().getName().toLowerCase().contains(searchLower)))
+                .collect(Collectors.toList());
+
+        employeeTable.setItems(FXCollections.observableArrayList(employeesFiltres));
+    }
+
 
     @FXML
     protected void handleAddEmployee() {

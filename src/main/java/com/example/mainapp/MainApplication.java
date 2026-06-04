@@ -1,7 +1,7 @@
 package com.example.mainapp;
 
 import com.example.mainapp.controller.MainController;
-import com.example.mainapp.model.Company;
+import com.example.mainapp.model.company.Company;
 import com.example.mainapp.network.TCPServer;
 import com.example.mainapp.utils.PersistenceManager;
 import com.example.mainapp.utils.ConfigManager;
@@ -27,7 +27,7 @@ public class MainApplication extends Application {
 
         TCPServer.getInstance().demarrer(config.getServerPort(), maCompagnie);
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/com/example/mainapp/view/main-view.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 1200, 700);
+        Scene scene = new Scene(fxmlLoader.load(), 1300, 700);
         stage.setTitle("Système de Gestion de Pointage");
         stage.setScene(scene);
         stage.show();

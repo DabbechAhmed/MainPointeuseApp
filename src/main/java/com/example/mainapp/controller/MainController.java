@@ -3,7 +3,8 @@ package com.example.mainapp.controller;
 import com.example.mainapp.controller.attendance.AttendanceController;
 import com.example.mainapp.controller.departement.DepartmentController;
 import com.example.mainapp.controller.employee.EmployeeController;
-import com.example.mainapp.model.Company;
+import com.example.mainapp.model.company.Company;
+import com.example.mainapp.model.attendance.AttendanceRecord;
 import com.example.mainapp.network.TCPServer;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -62,7 +63,7 @@ public class MainController {
         int countIncidents = 0;
 
         if (company.getAttendanceRecords() != null) {
-            for (com.example.mainapp.model.AttendanceRecord record : company.getAttendanceRecords()) {
+            for (AttendanceRecord record : company.getAttendanceRecords()) {
                 if (record == null || record.getTime() == null) continue;
 
                 if (record.getTime().toLocalDate().equals(aujourdhui)) {

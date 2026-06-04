@@ -11,7 +11,7 @@
         <Label text="Gestion des départements" styleClass="section-title"/>
         <Region HBox.hgrow="ALWAYS" />
         <TextField fx:id="searchField" promptText="Rechercher..." prefWidth="200"/>
-        <Button text="+ Add new" onAction="#handleAddDepartment" styleClass="btn-primary"/>
+        <Button text="+ Ajouter" onAction="#handleAddDepartment" styleClass="btn-primary"/>
     </HBox>
 
     <TableView fx:id="departmentTable" VBox.vgrow="ALWAYS">

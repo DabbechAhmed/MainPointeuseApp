@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.collections.FXCollections?>
+<?import java.lang.String?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.example.mainapp.controller.attendance.AttendanceController"
+      spacing="20" styleClass="page-content">
+
+    <VBox spacing="15">
+        <HBox alignment="CENTER_LEFT" spacing="20">
+            <Label text="Historique des pointages" styleClass="section-title"/>
+            <Region HBox.hgrow="ALWAYS" />
+            <Button text="+ Ajouter" onAction="#handleAddAttendance" styleClass="btn-primary"/>
+        </HBox>
+
+        <VBox spacing="15" style="-fx-padding: 10;">
+            <HBox alignment="TOP_LEFT" spacing="20">
+
+                <VBox spacing="8">
+                    <Label text="Filtrer par date:" styleClass="filter-label"/>
+                    <HBox spacing="10">
+                        <DatePicker fx:id="dateFilter" prefWidth="170" minWidth="150"/>
+                        <Button text="✕" onAction="#handleClearDateFilter" styleClass="btn-clear" prefWidth="40" minWidth="40"/>
+                    </HBox>
+                </VBox>
+
+                <VBox spacing="8">
+                    <Label text="Filtrer par employé:" styleClass="filter-label"/>
+                    <ComboBox fx:id="employeeFilter" promptText="Tous les employés" prefWidth="220" minWidth="180">
+                        <items>
+                            <FXCollections fx:factory="observableArrayList">
+                                <String fx:value="Tous les employés"/>
+                            </FXCollections>
+                        </items>
+                    </ComboBox>
+                </VBox>
+
+                <VBox spacing="8">
+                    <Label text="Filtrer par département:" styleClass="filter-label"/>
+                    <ComboBox fx:id="departmentFilter" promptText="Tous les départements" prefWidth="220" minWidth="180">
+                        <items>
+                            <FXCollections fx:factory="observableArrayList">
+                                <String fx:value="Tous les départements"/>
+                            </FXCollections>
+                        </items>
+                    </ComboBox>
+                </VBox>
+
+                <VBox spacing="8">
+                    <Label text="Filtrer par statut:" styleClass="filter-label"/>
+                    <ComboBox fx:id="statusFilter" promptText="Tous les statuts" prefWidth="220" minWidth="180">
+                        <items>
+                            <FXCollections fx:factory="observableArrayList">
+                                <String fx:value="Tous les statuts"/>
+                                <String fx:value="Normal"/>
+                                <String fx:value="Avance"/>
+                                <String fx:value="Incident : Retard"/>
+                                <String fx:value="Heures supp."/>
+                                <String fx:value="Incident : Départ anticipé"/>
+                                <String fx:value="Incident : Hors planning"/>
+                                <String fx:value="Incident : Sortie manquante"/>
+                            </FXCollections>
+                        </items>
+                    </ComboBox>
+                </VBox>
+
+                <Region HBox.hgrow="ALWAYS" />
+                <VBox spacing="8" alignment="BOTTOM_CENTER">
+                    <Label text="" />
+                    <Button text="Appliquer" onAction="#handleFilterAttendance" styleClass="btn-secondary" prefWidth="120" minWidth="120"/>
+                </VBox>
+            </HBox>
+        </VBox>
+    </VBox>
+
+    <TableView fx:id="attendanceTable" VBox.vgrow="ALWAYS">
+        <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+        </columnResizePolicy>
+        <columns>
+            <TableColumn fx:id="colAttEmpId" text="ID Employé" prefWidth="100"/>
+            <TableColumn fx:id="colAttEmpNom" text="Nom Employé" prefWidth="150"/>
+            <TableColumn fx:id="colAttType" text="Type (In/Out)" prefWidth="100"/>
+            <TableColumn fx:id="colAttDate" text="Date" prefWidth="120"/>
+            <TableColumn fx:id="colAttHeure" text="Heure Pointage" prefWidth="150"/>
+            <TableColumn fx:id="colAttStatut" text="Statut" prefWidth="150"/>
+        </columns>
+    </TableView>
+
+</VBox>

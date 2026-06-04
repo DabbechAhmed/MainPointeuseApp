@@ -11,7 +11,7 @@
         <Label text="Gestion des employés" styleClass="section-title"/>
         <Region HBox.hgrow="ALWAYS" />
         <TextField fx:id="searchField" promptText="Rechercher..." prefWidth="200"/>
-        <Button text="+ Add new" onAction="#handleAddEmployee" styleClass="btn-primary"/>
+        <Button text="+ Ajouter" onAction="#handleAddEmployee" styleClass="btn-primary"/>
     </HBox>
 
     <TableView fx:id="employeeTable" VBox.vgrow="ALWAYS">

@@ -1,13 +1,11 @@
-package com.example.mainapp.model;
+package com.example.mainapp.model.employee;
 
-import com.example.mainapp.enums.Status;
+import com.example.mainapp.model.department.Department;
+import com.example.mainapp.model.schedule.Schedule;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.Duration;
-import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Représente un employé avec ses informations personnelles, son statut,

@@ -1,4 +1,8 @@
-package com.example.mainapp.model;
+package com.example.mainapp.model.company;
+
+import com.example.mainapp.model.department.Department;
+import com.example.mainapp.model.attendance.AttendanceRecord;
+import com.example.mainapp.model.employee.Employee;
 
 import java.io.Serial;
 import java.io.Serializable;

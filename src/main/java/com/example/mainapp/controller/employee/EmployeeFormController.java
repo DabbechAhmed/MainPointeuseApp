@@ -1,10 +1,10 @@
 package com.example.mainapp.controller.employee;
 
-import com.example.mainapp.enums.Status;
-import com.example.mainapp.model.Department;
-import com.example.mainapp.model.Employee;
-import com.example.mainapp.model.Schedule;
-import com.example.mainapp.model.TimeSlot;
+import com.example.mainapp.model.employee.Status;
+import com.example.mainapp.model.department.Department;
+import com.example.mainapp.model.employee.Employee;
+import com.example.mainapp.model.schedule.Schedule;
+import com.example.mainapp.model.schedule.TimeSlot;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;

@@ -1,7 +1,12 @@
 package com.example.mainapp;
 
-import com.example.mainapp.model.*;
-import com.example.mainapp.enums.Status;
+import com.example.mainapp.model.attendance.AttendanceRecord;
+import com.example.mainapp.model.company.Company;
+import com.example.mainapp.model.department.Department;
+import com.example.mainapp.model.employee.Employee;
+import com.example.mainapp.model.employee.Status;
+import com.example.mainapp.model.schedule.Schedule;
+import com.example.mainapp.model.schedule.TimeSlot;
 import com.example.mainapp.utils.PersistenceManager;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;

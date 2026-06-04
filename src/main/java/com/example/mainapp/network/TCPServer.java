@@ -1,6 +1,6 @@
 package com.example.mainapp.network;
 
-import com.example.mainapp.model.Company;
+import com.example.mainapp.model.company.Company;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;

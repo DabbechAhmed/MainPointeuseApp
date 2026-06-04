@@ -1,9 +1,9 @@
 package com.example.mainapp.controller.attendance;
 
-import com.example.mainapp.model.AttendanceRecord;
-import com.example.mainapp.model.Company;
-import com.example.mainapp.model.Employee;
-import com.example.mainapp.model.TimeSlot;
+import com.example.mainapp.model.attendance.AttendanceRecord;
+import com.example.mainapp.model.company.Company;
+import com.example.mainapp.model.employee.Employee;
+import com.example.mainapp.model.schedule.TimeSlot;
 import com.example.mainapp.network.TCPServer;
 import com.example.mainapp.utils.ConfigManager;
 import com.example.mainapp.utils.PersistenceManager;

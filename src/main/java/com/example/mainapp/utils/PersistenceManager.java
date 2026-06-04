@@ -1,6 +1,6 @@
 package com.example.mainapp.utils;
 
-import com.example.mainapp.model.Company;
+import com.example.mainapp.model.company.Company;
 
 import java.io.*;
 

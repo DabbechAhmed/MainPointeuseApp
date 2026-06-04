@@ -1,4 +1,4 @@
-package com.example.mainapp.model;
+package com.example.mainapp.model.schedule;
 
 import java.io.Serial;
 import java.io.Serializable;

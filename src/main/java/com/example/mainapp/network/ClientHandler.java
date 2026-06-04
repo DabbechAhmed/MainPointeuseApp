@@ -1,9 +1,9 @@
 package com.example.mainapp.network;
 
 import com.example.mainapp.controller.MainController;
-import com.example.mainapp.model.Company;
-import com.example.mainapp.model.Employee;
-import com.example.mainapp.model.AttendanceRecord;
+import com.example.mainapp.model.company.Company;
+import com.example.mainapp.model.employee.Employee;
+import com.example.mainapp.model.attendance.AttendanceRecord;
 import com.example.dto.EmployeeDTO;
 import com.example.dto.CheckPoint;
 import com.example.mainapp.controller.attendance.AttendanceService;
