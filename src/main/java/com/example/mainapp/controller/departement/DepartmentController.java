@@ -18,15 +18,43 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * Contrôleur graphique gérant l'interface visuelle de la liste des départements.
+ * <p>
+ * Cette classe est responsable du pont de données (Data Binding) entre le modèle de données
+ * et le tableau {@link TableView} affichant les départements. Elle calcule dynamiquement
+ * les statistiques d'effectifs pour chaque ligne, intercepte les double-clics pour ouvrir
+ * le formulaire d'édition en mode modal, et collabore avec la couche {@link DepartmentService}.
+ * </p>
+ *
+ * @author Youssef M'SADAA, Ahmed DEBBACH, Youssef RIANI, Mohamed Yassine BEN ABDA, Youssef ELYAHYAOUI
+ */
 public class DepartmentController {
 
-    @FXML private TableView<Department> departmentTable;
-    @FXML private TableColumn<Department, String> colDeptId;
-    @FXML private TableColumn<Department, String> colDeptNom;
-    @FXML private TableColumn<Department, String> colDeptNbEmp;
+    @FXML /** Composant de tableau JavaFX affichant la liste des départements. */
+    private TableView<Department> departmentTable;
 
-    @FXML private TextField searchField;
+    @FXML /** Colonne du tableau affichant l'identifiant unique du département. */
+    private TableColumn<Department, String> colDeptId;
 
+    @FXML /** Colonne du tableau affichant le nom du département. */
+    private TableColumn<Department, String> colDeptNom;
+
+    @FXML /** Colonne du tableau affichant le nombre total d'employés rattachés au département. */
+    private TableColumn<Department, String> colDeptNbEmp;
+
+    @FXML /** Champ de saisie textuel réservé pour le filtrage ou la recherche (non implémenté/futur). */
+    private TextField searchField;
+
+    /**
+     * Méthode d'initialisation automatique appelée par le cycle de vie JavaFX.
+     * <p>
+     * Configure les fabriques de valeurs de cellules (CellValueFactory) pour extraire l'ID,
+     * le nom et mesurer la taille de la liste d'employés de chaque département.
+     * Elle configure également la RowFactory pour intercepter les événements de double-clic
+     * afin d'ouvrir le panneau de modification d'une ligne active.
+     * </p>
+     */
     @FXML
     public void initialize() {
         colDeptId.setCellValueFactory(cellData -> {
@@ -40,8 +68,8 @@ public class DepartmentController {
 
         colDeptNbEmp.setCellValueFactory(cellData -> {
             Department dept = cellData.getValue();
-            int nbEmployes = (dept.getEmployees() != null) ? dept.getEmployees().size() : 0;
-            return new SimpleStringProperty(nbEmployes + " employé(s)");
+            int employeeCount = (dept.getEmployees() != null) ? dept.getEmployees().size() : 0;
+            return new SimpleStringProperty(employeeCount + " employé(s)");
         });
 
         departmentTable.setRowFactory(tv -> {
@@ -49,45 +77,69 @@ public class DepartmentController {
             row.setOnMouseClicked(event -> {
                 if (event.getClickCount() == 2 && (!row.isEmpty())) {
                     Department rowData = row.getItem();
-                    ouvrirFenetreDepartement(rowData);
+                    openDepartmentWindow(rowData);
                 }
             });
             return row;
         });
     }
 
-    public void rafraichirTableau() {
-        List<Department> listeDepartement = DepartmentService.getInstance().recupererTousLesDepartements();
+    /**
+     * Interroge le service métier pour récupérer la liste à jour des départements et rafraîchit la table graphique.
+     * <p>
+     * Reconstruit la liste observable ({@link ObservableList}) et force la mise à jour visuelle du composant
+     * à l'aide de la méthode native {@code refresh()}.
+     * </p>
+     */
+    public void refreshTable() {
+        List<Department> departmentList = DepartmentService.getInstance().getAllDepartments();
 
-        if (listeDepartement == null) {
-            listeDepartement = new java.util.ArrayList<>();
+        if (departmentList == null) {
+            departmentList = new java.util.ArrayList<>();
         }
 
-        ObservableList<Department> deptList = FXCollections.observableArrayList(listeDepartement);
+        ObservableList<Department> deptList = FXCollections.observableArrayList(departmentList);
         departmentTable.setItems(deptList);
         departmentTable.refresh();
     }
 
+    /**
+     * Action FXML déclenchée lors du clic sur le bouton de création d'un département.
+     * <p>
+     * Appelle la méthode d'ouverture de fenêtre modale en transmettant la valeur {@code null}.
+     * </p>
+     */
     @FXML
     protected void handleAddDepartment() {
-        ouvrirFenetreDepartement(null);
+        openDepartmentWindow(null);
     }
 
-    private void ouvrirFenetreDepartement(Department departement) {
+    /**
+     * Charge et affiche la boîte de dialogue modale du formulaire de département.
+     * <p>
+     * Cette méthode instancie le fichier FXML du formulaire, extrait son sous-contrôleur
+     * {@link DepartmentFormController} pour y injecter le département sélectionné (ou {@code null}
+     * en mode création), et bloque la fenêtre parente jusqu'à la fermeture du sous-panneau.
+     * Un rafraîchissement automatique de la table est opéré à sa fermeture.
+     * </p>
+     *
+     * @param department L'instance de {@link Department} à éditer, ou {@code null} s'il s'agit d'une création.
+     */
+    private void openDepartmentWindow(Department department) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/mainapp/view/department/department-form.fxml"));
             Parent root = loader.load();
 
             DepartmentFormController controller = loader.getController();
-            controller.setDepartment(departement);
+            controller.setDepartment(department);
 
             Stage stage = new Stage();
-            stage.setTitle(departement == null ? "Nouveau Département" : "Éditer le Département");
+            stage.setTitle(department == null ? "Nouveau Département" : "Éditer le Département");
             stage.setScene(new Scene(root));
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.showAndWait();
 
-            rafraichirTableau();
+            refreshTable();
 
         } catch (IOException e) {
             System.err.println("Erreur lors de l'ouverture du formulaire FXML : " + e.getMessage());

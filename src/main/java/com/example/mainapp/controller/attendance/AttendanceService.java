@@ -19,15 +19,43 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Service métier centralisé gérant l'évaluation des pointages, le calcul des soldes et les imports de données.
+ * <p>
+ * Cette classe implémente le pattern Singleton et centralise le cœur algorithmique de gestion du temps de l'application.
+ * Elle remplit trois fonctions critiques :
+ * <ul>
+ * <li><b>Évaluation unitaire :</b> Analyse de la conformité d'un pointage par rapport au planning de l'employé et application des statuts (Retard, Avance, Heures supplémentaires, Départ anticipé).</li>
+ * <li><b>Recalcul des soldes :</b> Analyse chronologique par blocs d'entrées/sorties pour détecter les anomalies (sorties manquantes) et mettre à jour le solde de minutes de l'employé en fonction du seuil de tolérance.</li>
+ * <li><b>Importation de masse :</b> Parsing robuste de fichiers CSV pour injecter des historiques de pointages provenant des pointeuses distantes.</li>
+ * </ul>
+ * </p>
+ *
+ * @author Youssef M'SADAA, Ahmed DEBBACH, Youssef RIANI, Mohamed Yassine BEN ABDA, Youssef ELYAHYAOUI
+ */
 public class AttendanceService {
 
+    /** L'instance unique (Singleton) du service de gestion des pointages. */
     private static AttendanceService instance;
+
+    /** La référence vers l'entité globale de l'entreprise pour manipuler le modèle de données. */
     private final Company company;
 
+    /**
+     * Constructeur privé extrayant l'instance de l'entreprise depuis le serveur TCP actif.
+     */
     private AttendanceService() {
         this.company = TCPServer.getInstance().getCompany();
     }
 
+    /**
+     * Retourne l'instance unique et globale de ce service.
+     * <p>
+     * Initialise l'instance de manière paresseuse (Lazy Initialization) lors de son tout premier appel.
+     * </p>
+     *
+     * @return L'instance unique de {@link AttendanceService}.
+     */
     public static AttendanceService getInstance() {
         if (instance == null) {
             instance = new AttendanceService();
@@ -35,12 +63,25 @@ public class AttendanceService {
         return instance;
     }
 
-    public void evaluerEtAppliquerPointage(AttendanceRecord record) {
-        Employee emp = record.getEmployee();
+    /**
+     * Qualifie et applique le statut de conformité d'un enregistrement de pointage unique.
+     * <p>
+     * Cette méthode compare l'horodatage effectif du pointage avec les heures théoriques du planning de l'employé
+     * pour le jour de la semaine concerné. Elle s'appuie sur le seuil configuré par le {@link ConfigManager} :
+     * <ul>
+     * <li><b>En Entrée (Check-In) :</b> Génère un incident si le retard excède la tolérance, ou applique le statut "Avance".</li>
+     * <li><b>En Sortie (Check-Out) :</b> Valorise des "Heures supp." si l'employé est resté plus longtemps, ou un incident de "Départ anticipé".</li>
+     * </ul>
+     * </p>
+     *
+     * @param record L'enregistrement de pointage {@link AttendanceRecord} à analyser et qualifier.
+     */
+    public void evaluateAndApplyAttendance(AttendanceRecord record) {
+        Employee employee = record.getEmployee();
 
-        if (emp != null && emp.getSchedule() != null) {
-            DayOfWeek jour = record.getTime().getDayOfWeek();
-            TimeSlot slot = emp.getSchedule().getHorairePourJour(jour);
+        if (employee != null && employee.getSchedule() != null) {
+            DayOfWeek day = record.getTime().getDayOfWeek();
+            TimeSlot slot = employee.getSchedule().getHorairePourJour(day);
 
             if (slot != null && slot.getArrivee() != null && slot.getDepart() != null) {
                 ConfigManager config = new ConfigManager();
@@ -80,8 +121,25 @@ public class AttendanceService {
         }
     }
 
-    public void recalculateBalance(Employee emp, List<AttendanceRecord> attendanceHistory) {
-        emp.setSoldeMinutes(0L);
+    /**
+     * Recalcule l'intégralité du solde de minutes d'un employé à partir de son historique chronologique.
+     * <p>
+     * L'algorithme trie d'abord l'historique par date et heure, puis regroupe les événements par journée (LocalDate).
+     * Pour chaque jour, il associe les paires d'entrées et de sorties consécutives pour mesurer le temps de présence effectif.
+     * <ul>
+     * <li><b>Gestion des anomalies :</b> Si une entrée n'a pas de sortie associée et que la journée est passée, une pénalité
+     * équivalente au temps de travail théorique attendu est appliquée (retenue totale) et le statut passe en "Sortie manquante".</li>
+     * <li><b>Journée en cours :</b> Si l'absence de sortie concerne la journée d'aujourd'hui, l'algorithme considère que la
+     * session est en cours et ne pénalise pas le solde.</li>
+     * </ul>
+     * Enfin, l'écart global (Minutes travaillées - Minutes théoriques dues) est soumis au filtre de tolérance avant d'être affecté à l'employé.
+     * </p>
+     *
+     * @param employee          L'employé {@link Employee} dont le solde doit être mis à jour.
+     * @param attendanceHistory La liste complète de tous les pointages historiques rattachés à cet employé.
+     */
+    public void recalculateBalance(Employee employee, List<AttendanceRecord> attendanceHistory) {
+        employee.setSoldeMinutes(0L);
 
         if (attendanceHistory == null || attendanceHistory.isEmpty()) {
             return;
@@ -115,7 +173,7 @@ public class AttendanceService {
                         workedMinutesToday += Duration.between(current.getTime(), checkOut.getTime()).toMinutes();
 
                         if (current.getStatus() != null && current.getStatus().contains("Sortie manquante")) {
-                            evaluerEtAppliquerPointage(current);
+                            evaluateAndApplyAttendance(current);
                         }
 
                         i++;
@@ -131,8 +189,8 @@ public class AttendanceService {
             }
 
             long expectedMinutes = 0L;
-            if (emp.getSchedule() != null) {
-                expectedMinutes = emp.getSchedule().getMinutesPourCeJour(date.getDayOfWeek());
+            if (employee.getSchedule() != null) {
+                expectedMinutes = employee.getSchedule().getMinutesPourCeJour(date.getDayOfWeek());
             }
 
             if (missingCheckoutAnomaly) {
@@ -148,15 +206,25 @@ public class AttendanceService {
             }
         }
 
-        emp.setSoldeMinutes(newBalance);
+        employee.setSoldeMinutes(newBalance);
     }
 
+    /**
+     * Ajoute un nouveau pointage au modèle de données de l'entreprise et recalcule le solde de l'employé associé.
+     * <p>
+     * Évalue les critères de conformité temporelle immédiatement, insère l'enregistrement dans la liste centrale,
+     * puis isole l'historique complet de l'employé concerné pour lancer un recalcul synchrone du solde de minutes.
+     * </p>
+     *
+     * @param record Le nouvel enregistrement de pointage à valider et insérer.
+     * @throws Exception Si l'objet pointage ou sa référence d'employé associée est invalide (null).
+     */
     public void addAttendanceRecord(AttendanceRecord record) throws Exception {
         if (record == null || record.getEmployee() == null) {
             throw new Exception("Le pointage est invalide.");
         }
 
-        evaluerEtAppliquerPointage(record);
+        evaluateAndApplyAttendance(record);
         company.getAttendanceRecords().add(record);
 
         Employee emp = record.getEmployee();
@@ -165,14 +233,23 @@ public class AttendanceService {
                 .collect(Collectors.toList());
 
         recalculateBalance(emp, employeeHistory);
-
         saveData();
     }
 
+    /**
+     * Traite et réévalue un pointage existant suite à une modification ou correction manuelle.
+     * <p>
+     * Relance l'évaluation des règles de planning, ajoute la mention textuelle "(Modifié)" au statut de
+     * l'enregistrement, puis met à jour le solde d'heures de l'employé en recalculant son historique.
+     * </p>
+     *
+     * @param record L'enregistrement de pointage modifié à régulariser.
+     * @throws Exception Si la référence du pointage est nulle.
+     */
     public void updateAttendanceRecord(AttendanceRecord record) throws Exception {
         if (record == null) throw new Exception("Le pointage à modifier est invalide.");
 
-        evaluerEtAppliquerPointage(record);
+        evaluateAndApplyAttendance(record);
         record.setStatus(record.getStatus() + " (Modifié)");
 
         Employee emp = record.getEmployee();
@@ -181,14 +258,28 @@ public class AttendanceService {
                 .collect(Collectors.toList());
 
         recalculateBalance(emp, employeeHistory);
-
         saveData();
     }
 
+    /**
+     * Récupère la liste brute de tous les enregistrements de pointage de l'entreprise.
+     *
+     * @return Une {@link List} contenant l'ensemble des objets {@link AttendanceRecord}.
+     */
     public List<AttendanceRecord> getAllAttendanceRecords() {
         return company.getAttendanceRecords();
     }
 
+    /**
+     * Supprime définitivement un enregistrement de pointage du modèle central de données.
+     * <p>
+     * Supprime l'objet de la collection globale et déclenche instantanément une régularisation du solde de minutes
+     * de l'employé impacté pour effacer l'empreinte de ce pointage de son historique de présence.
+     * </p>
+     *
+     * @param record L'enregistrement de pointage à radier de l'application.
+     * @throws Exception Si le pointage est nul ou introuvable dans le système.
+     */
     public void deleteAttendanceRecord(AttendanceRecord record) throws Exception {
         if (record == null || !company.getAttendanceRecords().remove(record)) {
             throw new Exception("Suppression impossible.");
@@ -204,12 +295,24 @@ public class AttendanceService {
 
         saveData();
     }
+
     /**
-     * @brief Import massive attendance records from a CSV file.
-     * @details Lit un fichier CSV contenant des lignes de pointages, associe chaque ligne à un employé
-     * existant de l'entreprise, applique le statut et déclenche un recalcul global des soldes.
-     * @param file Le fichier CSV sélectionné par l'utilisateur.
-     * @throws Exception Si le fichier est introuvable ou mal formé.
+     * Importe de manière massive un flux de pointages à partir d'un fichier CSV externe.
+     * <p>
+     * Cette méthode procède par étapes séquentielles :
+     * <ul>
+     * <li>Ouvre un canal de lecture tamponné (BufferedReader) et saute la ligne d'en-tête du fichier.</li>
+     * <li>Parse chaque ligne textuelle autour du séparateur {@code ";"}.</li>
+     * <li>Recherche l'employé correspondant à l'identifiant (UUID) lu à l'aide d'un filtre Stream. Si l'employé n'existe pas, la ligne est ignorée.</li>
+     * <li>Instancie un {@link AttendanceRecord} et interprète l'horodatage via un parseur flexible multiformat (acceptant avec ou sans deux-points).</li>
+     * <li>Qualifie le type de signalement (IN/OUT), applique l'évaluation métier unitaire et injecte la donnée dans le modèle central.</li>
+     * </ul>
+     * Une fois la lecture complète achevée, elle exécute une boucle finale pour recalculer de bout en bout les compteurs de soldes
+     * de chaque employé présent dans l'organisation, puis force l'écriture physique sur disque.
+     * </p>
+     *
+     * @param file Le descripteur de fichier {@link File} représentant le CSV sélectionné.
+     * @throws Exception Si le fichier est nul, introuvable ou si la structure d'une colonne viole les contraintes de formatage.
      */
     public void importRecordsFromCSV(File file) throws Exception {
         if (file == null || !file.exists()) {
@@ -221,7 +324,6 @@ public class AttendanceService {
             boolean isHeader = true;
 
             while ((line = br.readLine()) != null) {
-                // On ignore la première ligne correspondant aux entêtes (id_employe;date_heure;type)
                 if (isHeader) {
                     isHeader = false;
                     continue;
@@ -229,14 +331,13 @@ public class AttendanceService {
 
                 String[] data = line.split(";");
                 if (data.length < 3) {
-                    continue; // Ligne incomplète, on passe à la suivante
+                    continue;
                 }
 
                 String empId = data[0].trim();
                 String dateTimeStr = data[1].trim();
-                String typeStr = data[2].trim(); // Attend "IN" ou "OUT"
+                String typeStr = data[2].trim();
 
-                // Recherche de l'employé correspondant dans la structure globale de l'entreprise
                 Employee emp = company.getEmployees().stream()
                         .filter(e -> e.getId() != null && e.getId().toString().equals(empId))
                         .findFirst()
@@ -247,27 +348,21 @@ public class AttendanceService {
                     continue;
                 }
 
-                // Instanciation et configuration du nouvel enregistrement
                 AttendanceRecord record = new AttendanceRecord();
                 record.setEmployee(emp);
                 DateTimeFormatter formatter = new DateTimeFormatterBuilder()
-                        .appendOptional(DateTimeFormatter.ISO_LOCAL_DATE_TIME) // Accepte: 2026-06-02T08:00:00
-                        .appendOptional(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmss")) // Accepte: 2026-06-02T080000
-                        .appendOptional(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) // Accepte: 2026-06-02 08:00:00 (Excel classique)
+                        .appendOptional(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                        .appendOptional(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmss"))
+                        .appendOptional(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
                         .toFormatter();
 
-                record.setTime(LocalDateTime.parse(dateTimeStr,formatter));
+                record.setTime(LocalDateTime.parse(dateTimeStr, formatter));
                 record.setCheckIn(typeStr.equalsIgnoreCase("IN"));
 
-                // Évaluation automatique du statut (Normal, Retard, etc.)
-                evaluerEtAppliquerPointage(record);
-
-                // Ajout à la liste de l'entreprise
+                evaluateAndApplyAttendance(record);
                 company.getAttendanceRecords().add(record);
             }
 
-            // ✅ MISE À JOUR DES COMPTEURS : On recalcule l'historique complet de chaque employé
-            // pour intégrer proprement l'impact des nouveaux pointages sur leurs soldes respectifs.
             for (Employee employee : company.getEmployees()) {
                 List<AttendanceRecord> employeeHistory = company.getAttendanceRecords().stream()
                         .filter(r -> r.getEmployee() != null && r.getEmployee().getId().equals(employee.getId()))
@@ -276,11 +371,16 @@ public class AttendanceService {
                 recalculateBalance(employee, employeeHistory);
             }
 
-            // Persistance des données sur le disque
             saveData();
         }
     }
 
+    /**
+     * Déclenche la sérialisation et l'écriture de l'état de l'entreprise sur le disque local.
+     * <p>
+     * Méthode interne de synchronisation déléguant la persistance binaire au {@link PersistenceManager}.
+     * </p>
+     */
     private void saveData() {
         try {
             PersistenceManager.saveData(this.company);

@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.*?>
 
 <VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.example.mainapp.controller.SettingsController"
+      fx:controller="com.example.mainapp.controller.settings.SettingsController"
       spacing="20">
 
     <Label text="Paramètres de l'application (F5)" styleClass="section-title"/>

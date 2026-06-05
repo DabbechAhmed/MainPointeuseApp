@@ -34,4 +34,10 @@ module com.example.mainapp {
     opens com.example.mainapp.model.department to javafx.fxml;
     exports com.example.mainapp.model.schedule;
     opens com.example.mainapp.model.schedule to javafx.fxml;
+    exports com.example.mainapp.controller.settings;
+    opens com.example.mainapp.controller.settings to javafx.fxml;
+    exports com.example.mainapp.test;
+    opens com.example.mainapp.test to javafx.fxml;
+    exports com.example.mainapp.main;
+    opens com.example.mainapp.main to javafx.fxml;
 }

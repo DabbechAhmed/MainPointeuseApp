@@ -15,21 +15,52 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Optional;
 
+/**
+ * Contrôleur graphique gérant le formulaire modal de création et d'édition d'un pointage manuel.
+ * <p>
+ * Cette classe permet aux administrateurs ou RH de corriger des anomalies ou d'ajouter manuellement un
+ * pointage d'entrée ou de sortie pour un employé. Elle bascule dynamiquement ses composants selon le mode
+ * (Création ou Édition), assure la validation stricte des formats temporels saisis (HH:mm) et communique
+ * avec la couche métier {@link AttendanceService} pour recalculer immédiatement le solde de l'employé.
+ * </p>
+ *
+ * @author Youssef M'SADAA, Ahmed DEBBACH, Youssef RIANI, Mohamed Yassine BEN ABDA, Youssef ELYAHYAOUI
+ */
 public class AttendanceFormController {
 
-    @FXML private Label titleLabel;
-    @FXML private ComboBox<Employee> employeeComboBox;
-    @FXML private ComboBox<String> typeComboBox;
-    @FXML private DatePicker datePicker;
-    @FXML private TextField heureField;
-    @FXML private Button btnDelete;
+    @FXML /** Titre dynamique de la fenêtre modale (ex: "Nouveau Pointage" ou "Éditer Pointage"). */
+    private Label titleLabel;
 
-    private AttendanceRecord recordActuel;
+    @FXML /** Menu déroulant de sélection de l'employé concerné par le pointage. */
+    private ComboBox<Employee> employeeComboBox;
+
+    @FXML /** Menu déroulant de sélection du type de flux (Entrée ou Sortie). */
+    private ComboBox<String> typeComboBox;
+
+    @FXML /** Sélecteur de date graphique pour le pointage. */
+    private DatePicker datePicker;
+
+    @FXML /** Champ de saisie textuel pour l'heure précise (format attendu HH:mm). */
+    private TextField heureField;
+
+    @FXML /** Bouton de suppression, rendu visible uniquement lors de l'édition d'un pointage existant. */
+    private Button btnDelete;
+
+    /** L'instance de l'enregistrement de pointage actuellement manipulée au sein du formulaire. */
+    private AttendanceRecord currentRecord;
+
+    /** Drapeau logique indiquant si le formulaire est ouvert en mode création (vrai) ou édition (faux). */
     private boolean isCreationMode;
 
+    /**
+     * Initialise les composants graphiques au chargement du FXML.
+     * <p>
+     * Alimente le menu déroulant des employés en extrayant la liste de l'entreprise via le serveur TCP,
+     * et pré-configure les options statiques du menu de type ("Entrée" / "Sortie").
+     * </p>
+     */
     @FXML
     public void initialize() {
-
         var company = TCPServer.getInstance().getCompany();
         if (company != null && company.getEmployees() != null) {
             employeeComboBox.setItems(FXCollections.observableArrayList(company.getEmployees()));
@@ -38,11 +69,21 @@ public class AttendanceFormController {
         typeComboBox.setItems(FXCollections.observableArrayList("Entrée", "Sortie"));
     }
 
-
+    /**
+     * Injecte le pointage à traiter et configure l'état d'affichage des composants de l'IHM.
+     * <p>
+     * Si l'objet fourni est {@code null}, le contrôleur s'initialise en mode création : les champs prennent
+     * les valeurs temporelles de l'instant présent (Date du jour, Heure courante) et le bouton de suppression est masqué.
+     * En mode édition, les champs sont figés sur les données historiques de l'enregistrement et la ComboBox
+     * de l'employé est désactivée pour interdire la réaffectation d'un pointage à un autre collaborateur.
+     * </p>
+     *
+     * @param record L'enregistrement {@link AttendanceRecord} à éditer, ou {@code null} pour un nouvel ajout.
+     */
     public void setAttendanceRecord(AttendanceRecord record) {
         if (record == null) {
             this.isCreationMode = true;
-            this.recordActuel = null;
+            this.currentRecord = null;
 
             titleLabel.setText("Nouveau Pointage");
             btnDelete.setVisible(false);
@@ -53,7 +94,7 @@ public class AttendanceFormController {
 
         } else {
             this.isCreationMode = false;
-            this.recordActuel = record;
+            this.currentRecord = record;
 
             titleLabel.setText("Éditer Pointage");
             btnDelete.setVisible(true);
@@ -67,12 +108,20 @@ public class AttendanceFormController {
         }
     }
 
+    /**
+     * Action FXML qui valide et applique l'enregistrement ou la mise à jour du pointage manuel.
+     * <p>
+     * Cette méthode opère des vérifications de surface (champs non sélectionnés) puis tente de parser
+     * l'heure au format standardisé ISO via {@link LocalTime#parse(CharSequence)}. Elle fusionne ensuite
+     * la date et l'heure en un objet {@link LocalDateTime}. Selon le mode actif, elle sollicite
+     * le {@link AttendanceService} pour insérer ou écraser le pointage, puis ferme la fenêtre modale.
+     * </p>
+     */
     @FXML
     private void handleSave() {
         try {
-
-            Employee employeSelectionne = employeeComboBox.getValue();
-            if (employeSelectionne == null) {
+            Employee selectedEmployee = employeeComboBox.getValue();
+            if (selectedEmployee == null) {
                 throw new Exception("Veuillez sélectionner un employé.");
             }
 
@@ -84,28 +133,26 @@ public class AttendanceFormController {
                 throw new Exception("Veuillez sélectionner le type (Entrée/Sortie).");
             }
 
-
-            LocalTime heureSaisie;
+            LocalTime parsedTime;
             try {
-                heureSaisie = LocalTime.parse(heureField.getText().trim());
+                parsedTime = LocalTime.parse(heureField.getText().trim());
             } catch (DateTimeParseException e) {
                 throw new Exception("Format d'heure invalide. Utilisez le format HH:mm (ex: 08:30).");
             }
 
-            LocalDateTime dateHeureComplete = LocalDateTime.of(datePicker.getValue(), heureSaisie);
+            LocalDateTime fullDateTime = LocalDateTime.of(datePicker.getValue(), parsedTime);
             boolean isCheckIn = typeComboBox.getValue().equals("Entrée");
 
             if (isCreationMode) {
-                AttendanceRecord nouveauRecord = new AttendanceRecord(employeSelectionne, dateHeureComplete, isCheckIn);
-                AttendanceService.getInstance().addAttendanceRecord(nouveauRecord);
+                AttendanceRecord newRecord = new AttendanceRecord(selectedEmployee, fullDateTime, isCheckIn);
+                AttendanceService.getInstance().addAttendanceRecord(newRecord);
             } else {
-
-                recordActuel.setTime(dateHeureComplete);
-                recordActuel.setCheckIn(isCheckIn);
-                AttendanceService.getInstance().updateAttendanceRecord(recordActuel);
+                currentRecord.setTime(fullDateTime);
+                currentRecord.setCheckIn(isCheckIn);
+                AttendanceService.getInstance().updateAttendanceRecord(currentRecord);
             }
 
-            fermerFenetre();
+            closeWindow();
 
         } catch (Exception e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -116,20 +163,28 @@ public class AttendanceFormController {
         }
     }
 
+    /**
+     * Action FXML déclenchant la suppression définitive de l'enregistrement de pointage affiché.
+     * <p>
+     * Déploie une boîte de dialogue de confirmation modale. Si l'administrateur valide, l'objet est
+     * retiré du modèle de données global via le {@link AttendanceService}, ce qui automatise la
+     * régularisation immédiate du solde de minutes de l'employé lésé.
+     * </p>
+     */
     @FXML
     private void handleDelete() {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Suppression");
         confirm.setHeaderText("Supprimer ce pointage ?");
         confirm.setContentText("Voulez-vous vraiment supprimer le pointage de " +
-                recordActuel.getEmployee().getName() + " à " +
-                recordActuel.getTime().toLocalTime() + " ?");
+                currentRecord.getEmployee().getName() + " à " +
+                currentRecord.getTime().toLocalTime() + " ?");
 
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             try {
-                AttendanceService.getInstance().deleteAttendanceRecord(recordActuel);
-                fermerFenetre();
+                AttendanceService.getInstance().deleteAttendanceRecord(currentRecord);
+                closeWindow();
             } catch (Exception e) {
                 Alert error = new Alert(Alert.AlertType.ERROR);
                 error.setTitle("Erreur");
@@ -140,12 +195,25 @@ public class AttendanceFormController {
         }
     }
 
+    /**
+     * Action FXML rattachée au bouton d'annulation de la saisie.
+     * <p>
+     * Interrompt l'action de modification ou d'ajout en cours et ordonne la fermeture de la fenêtre.
+     * </p>
+     */
     @FXML
     private void handleCancel() {
-        fermerFenetre();
+        closeWindow();
     }
 
-    private void fermerFenetre() {
+    /**
+     * Ferme la fenêtre graphique modale active.
+     * <p>
+     * Récupère dynamiquement l'arborescence de la scène (Stage) à partir du composant {@code heureField}
+     * pour appeler sa fermeture propre.
+     * </p>
+     */
+    private void closeWindow() {
         Stage stage = (Stage) heureField.getScene().getWindow();
         stage.close();
     }

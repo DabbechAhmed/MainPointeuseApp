@@ -1,4 +1,4 @@
-package com.example.mainapp;
+package com.example.mainapp.test;
 
 import com.example.mainapp.model.attendance.AttendanceRecord;
 import com.example.mainapp.model.company.Company;

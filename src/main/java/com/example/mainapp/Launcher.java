@@ -1,5 +1,6 @@
 package com.example.mainapp;
 
+import com.example.mainapp.main.MainApplication;
 import javafx.application.Application;
 
 public class Launcher {

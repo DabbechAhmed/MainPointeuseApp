@@ -1,4 +1,4 @@
-package com.example.mainapp;
+package com.example.mainapp.main;
 
 import com.example.mainapp.controller.MainController;
 import com.example.mainapp.model.company.Company;

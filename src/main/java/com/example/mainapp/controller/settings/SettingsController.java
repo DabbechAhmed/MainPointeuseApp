@@ -1,4 +1,4 @@
-package com.example.mainapp.controller;
+package com.example.mainapp.controller.settings;
 
 import com.example.mainapp.utils.ConfigManager;
 import javafx.fxml.FXML;
