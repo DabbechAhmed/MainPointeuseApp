@@ -14,7 +14,7 @@
             <Label text="Historique des pointages" styleClass="section-title"/>
             <Region HBox.hgrow="ALWAYS" />
             <Button text="Importer CSV" onAction="#handleImportCSV" styleClass="btn-secondary"/>
-            <Button text="+ Add new" onAction="#handleAddAttendance" styleClass="btn-primary"/>
+            <Button text="+ Ajouter" onAction="#handleAddAttendance" styleClass="btn-primary"/>
         </HBox>
         <VBox spacing="15" style="-fx-padding: 10;">
             <HBox alignment="TOP_LEFT" spacing="20">

@@ -66,17 +66,31 @@ public class AttendanceService {
     /**
      * Qualifie et applique le statut de conformité d'un enregistrement de pointage unique.
      * <p>
-     * Cette méthode compare l'horodatage effectif du pointage avec les heures théoriques du planning de l'employé
-     * pour le jour de la semaine concerné. Elle s'appuie sur le seuil configuré par le {@link ConfigManager} :
-     * <ul>
-     * <li><b>En Entrée (Check-In) :</b> Génère un incident si le retard excède la tolérance, ou applique le statut "Avance".</li>
-     * <li><b>En Sortie (Check-Out) :</b> Valorise des "Heures supp." si l'employé est resté plus longtemps, ou un incident de "Départ anticipé".</li>
-     * </ul>
+     * Vérifie d'abord l'existence d'un doublon (même employé, même type, même date). Si un doublon
+     * est détecté, le statut est immédiatement figé. Sinon, la méthode compare l'horodatage avec
+     * le planning théorique pour appliquer les statuts "Retard", "Avance", ou "Heures supp.".
      * </p>
      *
      * @param record L'enregistrement de pointage {@link AttendanceRecord} à analyser et qualifier.
      */
     public void evaluateAndApplyAttendance(AttendanceRecord record) {
+        // 1. Vérification anti-doublon en priorité absolue
+        if (company.getAttendanceRecords() != null) {
+            for (AttendanceRecord existant : company.getAttendanceRecords()) {
+                // On s'assure de ne pas comparer l'objet avec lui-même (cas de l'update)
+                if (existant != record &&
+                        existant.getEmployee().getId().equals(record.getEmployee().getId()) &&
+                        existant.isCheckIn() == record.isCheckIn() &&
+                        existant.getTime().toLocalDate().equals(record.getTime().toLocalDate())) {
+
+                    record.setStatus("Incident : Doublon");
+                    System.out.println("ALERTE : Double pointage détecté pour " + record.getEmployee().getName() + " !");
+                    return; // On stoppe l'évaluation ici
+                }
+            }
+        }
+
+        // 2. Évaluation classique (Retard, Avance, etc.)
         Employee employee = record.getEmployee();
 
         if (employee != null && employee.getSchedule() != null) {

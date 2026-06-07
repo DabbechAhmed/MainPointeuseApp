@@ -5,7 +5,7 @@ import com.example.mainapp.model.company.Company;
 import com.example.mainapp.model.employee.Employee;
 import com.example.mainapp.model.attendance.AttendanceRecord;
 import com.example.dto.EmployeeDTO;
-import com.example.dto.CheckPoint;
+import com.example.dto.CheckPointDTO;
 import com.example.mainapp.controller.attendance.AttendanceService;
 import com.example.mainapp.utils.PersistenceManager;
 import javafx.application.Platform;
@@ -53,7 +53,7 @@ public class ClientHandler implements Runnable {
      * La méthode ouvre les flux d'entrée et de sortie d'objets, puis écoute la requête du client :
      * <ul>
      * <li>Si la requête est {@code "GET_EMPLOYEES"}, le serveur renvoie une liste de {@link EmployeeDTO}.</li>
-     * <li>Si la requête est un objet {@link CheckPoint}, le serveur le convertit en {@link AttendanceRecord},
+     * <li>Si la requête est un objet {@link CheckPointDTO}, le serveur le convertit en {@link AttendanceRecord},
      * vérifie la validité de l'employé, détecte les éventuels doubles pointages (doublons),
      * enregistre la donnée via le {@link AttendanceService}, et actualise l'interface graphique en temps réel.</li>
      * </ul>
@@ -81,8 +81,10 @@ public class ClientHandler implements Runnable {
             }
 
 
-            else if (input instanceof CheckPoint) {
-                CheckPoint cp = (CheckPoint) input;
+            // Dans ClientHandler.java (Section de traitement du CheckPointDTO)
+
+            else if (input instanceof CheckPointDTO) {
+                CheckPointDTO cp = (CheckPointDTO) input;
                 String type = cp.isCheckIn() ? "Entrée" : "Sortie";
                 System.out.println("POINTAGE DTO REÇU : " + type + " pour ID " + cp.getEmployeeId());
 
@@ -93,31 +95,9 @@ public class ClientHandler implements Runnable {
                     oos.writeObject("ERROR: Employé inconnu");
                     oos.flush();
                 } else {
-
-                    AttendanceRecord record = new AttendanceRecord(emp, cp.getTime(), cp.isCheckIn());
-                    boolean isDoublon = false;
-
-                    if (company.getAttendanceRecords() != null) {
-                        for (AttendanceRecord existant : company.getAttendanceRecords()) {
-                            if (existant.getEmployee().getId().equals(record.getEmployee().getId()) &&
-                                    existant.isCheckIn() == record.isCheckIn() &&
-                                    existant.getTime().toLocalDate().equals(record.getTime().toLocalDate())) {
-                                record.setStatus("Incident : Doublon");
-                                isDoublon = true;
-                                System.out.println("ALERTE : Double pointage détecté pour " + emp.getName() + " !");
-                                break;
-                            }
-                        }
-                    }
-
                     try {
-                        if (isDoublon) {
-                            company.addAttendanceRecord(record);
-                            PersistenceManager.saveData(company);
-                        } else {
-                            AttendanceService.getInstance().addAttendanceRecord(record);
-                        }
-
+                        AttendanceRecord record = new AttendanceRecord(emp, cp.getTime(), cp.isCheckIn());
+                        AttendanceService.getInstance().addAttendanceRecord(record);
                         oos.writeObject("OK");
                     } catch (Exception e) {
                         System.err.println("Erreur lors du traitement métier : " + e.getMessage());
@@ -126,6 +106,7 @@ public class ClientHandler implements Runnable {
 
                     oos.flush();
 
+                    // 4. Rafraîchissement UI
                     try {
                         Platform.runLater(() -> {
                             if (MainController.instance != null) {
@@ -136,6 +117,7 @@ public class ClientHandler implements Runnable {
                         System.out.println("Application en cours d'arrêt, actualisation ignorée.");
                     }
                 }
+
             }
 
         } catch (Exception e) {

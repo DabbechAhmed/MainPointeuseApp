@@ -22,6 +22,16 @@ public class PersistenceManager {
     private static final String DATA_FILE = "company_data.ser";
 
     /**
+     * Constructeur privé bloquant l'instanciation.
+     * <p>
+     * PersistenceManager est une classe utilitaire statique et ne doit pas être instanciée.
+     * </p>
+     */
+    private PersistenceManager() {
+        throw new UnsupportedOperationException("Cette classe utilitaire ne peut pas être instanciée.");
+    }
+
+    /**
      * Sérialise l'objet Company global et l'écrit de manière synchrone sur le disque local.
      * <p>
      * Ouvre un flux de sortie d'objets ({@link ObjectOutputStream} imbriqué dans un {@link FileOutputStream}).
