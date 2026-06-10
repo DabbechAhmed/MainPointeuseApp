@@ -4,6 +4,7 @@ import com.example.mainapp.model.department.Department;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -31,28 +32,20 @@ import java.util.List;
  */
 public class DepartmentController {
 
-    @FXML /** Composant de tableau JavaFX affichant la liste des départements. */
-    private TableView<Department> departmentTable;
+    @FXML private TableView<Department> departmentTable;
+    @FXML private TableColumn<Department, String> colDeptId;
+    @FXML private TableColumn<Department, String> colDeptNom;
+    @FXML private TableColumn<Department, String> colDeptNbEmp;
+    @FXML private TextField searchField;
 
-    @FXML /** Colonne du tableau affichant l'identifiant unique du département. */
-    private TableColumn<Department, String> colDeptId;
-
-    @FXML /** Colonne du tableau affichant le nom du département. */
-    private TableColumn<Department, String> colDeptNom;
-
-    @FXML /** Colonne du tableau affichant le nombre total d'employés rattachés au département. */
-    private TableColumn<Department, String> colDeptNbEmp;
-
-    @FXML /** Champ de saisie textuel réservé pour le filtrage ou la recherche (non implémenté/futur). */
-    private TextField searchField;
+    private final ObservableList<Department> masterData = FXCollections.observableArrayList();
 
     /**
      * Méthode d'initialisation automatique appelée par le cycle de vie JavaFX.
      * <p>
      * Configure les fabriques de valeurs de cellules (CellValueFactory) pour extraire l'ID,
      * le nom et mesurer la taille de la liste d'employés de chaque département.
-     * Elle configure également la RowFactory pour intercepter les événements de double-clic
-     * afin d'ouvrir le panneau de modification d'une ligne active.
+     * Elle configure également le système de filtrage dynamique basé sur une FilteredList.
      * </p>
      */
     @FXML
@@ -72,6 +65,30 @@ public class DepartmentController {
             return new SimpleStringProperty(employeeCount + " employé(s)");
         });
 
+        FilteredList<Department> filteredData = new FilteredList<>(masterData, p -> true);
+
+        searchField.textProperty().addListener((observable, oldValue, newValue) -> {
+            filteredData.setPredicate(department -> {
+                if (newValue == null || newValue.isEmpty()) {
+                    return true;
+                }
+
+                String lowerCaseFilter = newValue.toLowerCase().trim();
+
+                if (department.getName() != null && department.getName().toLowerCase().contains(lowerCaseFilter)) {
+                    return true;
+                }
+
+                if (department.getId() != null && department.getId().toString().toLowerCase().contains(lowerCaseFilter)) {
+                    return true;
+                }
+
+                return false;
+            });
+        });
+
+        departmentTable.setItems(filteredData);
+
         departmentTable.setRowFactory(tv -> {
             TableRow<Department> row = new TableRow<>();
             row.setOnMouseClicked(event -> {
@@ -87,8 +104,7 @@ public class DepartmentController {
     /**
      * Interroge le service métier pour récupérer la liste à jour des départements et rafraîchit la table graphique.
      * <p>
-     * Reconstruit la liste observable ({@link ObservableList}) et force la mise à jour visuelle du composant
-     * à l'aide de la méthode native {@code refresh()}.
+     * Met à jour la liste maîtresse sous-jacente sans rompre les liaisons de la FilteredList.
      * </p>
      */
     public void refreshTable() {
@@ -98,8 +114,7 @@ public class DepartmentController {
             departmentList = new java.util.ArrayList<>();
         }
 
-        ObservableList<Department> deptList = FXCollections.observableArrayList(departmentList);
-        departmentTable.setItems(deptList);
+        masterData.setAll(departmentList);
         departmentTable.refresh();
     }
 

@@ -18,6 +18,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -283,18 +284,19 @@ public class AttendanceController {
      * </p>
      */
     public void refreshTable() {
+        loadEmployeeFilters();
+        loadDepartmentFilters();
         List<AttendanceRecord> attendanceList = AttendanceService.getInstance().getAllAttendanceRecords();
 
         if (attendanceList == null) {
-            attendanceList = new java.util.ArrayList<>();
+            attendanceList = new ArrayList<>();
         }
 
         ObservableList<AttendanceRecord> recordObservableList = FXCollections.observableArrayList(attendanceList);
         attendanceTable.setItems(recordObservableList);
         attendanceTable.refresh();
 
-        loadEmployeeFilters();
-        loadDepartmentFilters();
+
     }
 
     /**

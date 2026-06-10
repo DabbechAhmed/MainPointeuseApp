@@ -24,6 +24,7 @@ public class Company implements Serializable {
 
     /** Liste des employés de l'entreprise */
     private final List<Employee> employees;
+
     /** Liste des départements de l'entreprise */
     private final List<Department> departments;
 
@@ -60,11 +61,11 @@ public class Company implements Serializable {
     }
 
     /**
-     * Ajoute un employé s'il n'est pas nul et n'est pas déjà présent.
+     * Ajoute un employé s'il n'est pas nul et si son ID n'est pas déjà présent.
      * @param employee employé à ajouter
      */
     public void addEmployee(Employee employee) {
-        if (employee != null && !this.employees.contains(employee)) {
+        if (employee != null && findEmployeeById(employee.getId()) == null) {
             this.employees.add(employee);
         }
     }
@@ -74,7 +75,9 @@ public class Company implements Serializable {
      * @param id identifiant de l'employé
      */
     public void removeEmployee(UUID id) {
-        this.employees.removeIf(emp -> emp.getId().equals(id));
+        if (id != null) {
+            this.employees.removeIf(emp -> emp.getId().equals(id));
+        }
     }
 
     /**
@@ -83,6 +86,7 @@ public class Company implements Serializable {
      * @return l'employé si trouvé, sinon null
      */
     public Employee findEmployeeById(UUID id) {
+        if (id == null) return null;
         for (Employee emp : employees) {
             if (emp.getId().equals(id)) {
                 return emp;
@@ -102,26 +106,43 @@ public class Company implements Serializable {
     }
 
     /**
-     * Supprime un département par nom (insensible à la casse).
-     * @param deptName nom du département
+     * Supprime un département par identifiant.
+     * @param id identifiant du département
      */
-    public void removeDepartment(String deptName) {
-        this.departments.removeIf(dept -> dept.getName().equalsIgnoreCase(deptName));
+    public void removeDepartment(UUID id) {
+        if (id != null) {
+            this.departments.removeIf(dept -> dept.getId().equals(id));
+        }
     }
 
-
+    /**
+     * Retourne le nom de l'entreprise.
+     * @return le nom de l'entreprise
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Modifie le nom de l'entreprise.
+     * @param name le nouveau nom de l'entreprise
+     */
     public void setName(String name) {
         this.name = name;
     }
 
+    /**
+     * Retourne la liste des employés de l'entreprise.
+     * @return la liste des instances d'employés
+     */
     public List<Employee> getEmployees() {
         return employees;
     }
 
+    /**
+     * Retourne la liste des départements de l'entreprise.
+     * @return la liste des instances de départements
+     */
     public List<Department> getDepartments() {
         return departments;
     }
