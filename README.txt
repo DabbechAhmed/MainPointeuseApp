@@ -5,12 +5,9 @@ Membres : M.Y. BEN ABDA, Y. M'SADAA, A. DEBBACH, Y. RIANI, Y. ELYAHYAOUI.
 
 1. PRÉREQUIS TECHNIQUES & RÈGLES DE LANCEMENT
 - Environnement : **JDK Amazon Corretto 22.0.2** et modules **JavaFX 21**.
-- Ordre de lancement obligatoire :
-  1. Executer la classe `MainApp` (Serveur central RH, port TCP par défaut) à partir de la classe Launcher.
-  2. Executer la classe `PointeuseApp` (Terminal client de pointage) à partir de la classe Launcher.
-Note : -Mode hors-ligne automatique avec cache local ("pending.ser") et
-resynchronisation en arrière-plan toutes les 15s si le serveur est coupé.
--L'application gére plusieurs pointages (Option).
+- Lancement : 1. Executer `MainApp` (via Launcher) puis 2. `PointeuseApp` (via Launcher).
+- Réseau (CRUCIAL) : Saisir la bonne adresse IP du serveur dans les paramètres de la pointeuse.
+- Options : Mode hors-ligne auto ("pending.ser", sync 15s) et gestion multi-pointeuses.
 
 2. STRUCTURE DES SOURCES (ARCHITECTURE MVC)
 - com.example.dto : DTOs sérialisables partagés (Langage d'échange réseau).
@@ -30,5 +27,5 @@ resynchronisation en arrière-plan toutes les 15s si le serveur est coupé.
 - Y. M'SADAA : Application de pointeuse (Client) et Sérialisation des
   paramètres réseau dans un fichier de configuration locale (Option).
 - Y. RIANI : Gestion CRUD Employés/Départements et Modèle Schedule/TimeSlot.
-- Y. ELYAHYAOUI : Persistance centrale (company_data.ser) et Logique Métier et maquettage.
+- Y. ELYAHYAOUI : Persistance centrale (company_data.ser), Logique Métier et maquettage.
 ==============================================================================

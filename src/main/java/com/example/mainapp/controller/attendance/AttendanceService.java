@@ -20,18 +20,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Service métier centralisé gérant l'évaluation des pointages, le calcul des soldes et les imports de données.
+ * @brief Service métier centralisé gérant l'évaluation des pointages, le calcul des soldes et les imports de données.
  * <p>
  * Cette classe implémente le pattern Singleton et centralise le cœur algorithmique de gestion du temps de l'application.
- * Elle remplit trois fonctions critiques :
- * <ul>
- * <li><b>Évaluation unitaire :</b> Analyse de la conformité d'un pointage par rapport au planning de l'employé et application des statuts (Retard, Avance, Heures supplémentaires, Départ anticipé).</li>
- * <li><b>Recalcul des soldes :</b> Analyse chronologique par blocs d'entrées/sorties pour détecter les anomalies (sorties manquantes) et mettre à jour le solde de minutes de l'employé en fonction du seuil de tolérance.</li>
- * <li><b>Importation de masse :</b> Parsing robuste de fichiers CSV pour injecter des historiques de pointages provenant des pointeuses distantes.</li>
- * </ul>
  * </p>
- *
- * @author Youssef M'SADAA, Ahmed DEBBACH, Youssef RIANI, Mohamed Yassine BEN ABDA, Youssef ELYAHYAOUI
  */
 public class AttendanceService {
 
@@ -42,18 +34,14 @@ public class AttendanceService {
     private final Company company;
 
     /**
-     * Constructeur privé extrayant l'instance de l'entreprise depuis le serveur TCP actif.
+     * @brief Constructeur privé extrayant l'instance de l'entreprise depuis le serveur TCP actif.
      */
     private AttendanceService() {
         this.company = TCPServer.getInstance().getCompany();
     }
 
     /**
-     * Retourne l'instance unique et globale de ce service.
-     * <p>
-     * Initialise l'instance de manière paresseuse (Lazy Initialization) lors de son tout premier appel.
-     * </p>
-     *
+     * @brief Retourne l'instance unique et globale de ce service.
      * @return L'instance unique de {@link AttendanceService}.
      */
     public static AttendanceService getInstance() {
@@ -64,20 +52,12 @@ public class AttendanceService {
     }
 
     /**
-     * Qualifie et applique le statut de conformité d'un enregistrement de pointage unique.
-     * <p>
-     * Vérifie d'abord l'existence d'un doublon (même employé, même type, même date). Si un doublon
-     * est détecté, le statut est immédiatement figé. Sinon, la méthode compare l'horodatage avec
-     * le planning théorique pour appliquer les statuts "Retard", "Avance", ou "Heures supp.".
-     * </p>
-     *
-     * @param record L'enregistrement de pointage {@link AttendanceRecord} à analyser et qualifier.
+     * @brief Qualifie et applique le statut de conformité d'un enregistrement de pointage unique.
+     * @param record L'enregistrement de pointage à analyser et qualifier.
      */
     public void evaluateAndApplyAttendance(AttendanceRecord record) {
-        // 1. Vérification anti-doublon en priorité absolue
         if (company.getAttendanceRecords() != null) {
             for (AttendanceRecord existant : company.getAttendanceRecords()) {
-                // On s'assure de ne pas comparer l'objet avec lui-même (cas de l'update)
                 if (existant != record &&
                         existant.getEmployee().getId().equals(record.getEmployee().getId()) &&
                         existant.isCheckIn() == record.isCheckIn() &&
@@ -85,12 +65,11 @@ public class AttendanceService {
 
                     record.setStatus("Incident : Doublon");
                     System.out.println("ALERTE : Double pointage détecté pour " + record.getEmployee().getName() + " !");
-                    return; // On stoppe l'évaluation ici
+                    return;
                 }
             }
         }
 
-        // 2. Évaluation classique (Retard, Avance, etc.)
         Employee employee = record.getEmployee();
 
         if (employee != null && employee.getSchedule() != null) {
@@ -136,21 +115,15 @@ public class AttendanceService {
     }
 
     /**
-     * Recalcule l'intégralité du solde de minutes d'un employé à partir de son historique chronologique.
+     * @brief Recalcule l'intégralité du solde de minutes d'un employé à partir de son historique chronologique.
      * <p>
-     * L'algorithme trie d'abord l'historique par date et heure, puis regroupe les événements par journée (LocalDate).
-     * Pour chaque jour, il associe les paires d'entrées et de sorties consécutives pour mesurer le temps de présence effectif.
-     * <ul>
-     * <li><b>Gestion des anomalies :</b> Si une entrée n'a pas de sortie associée et que la journée est passée, une pénalité
-     * équivalente au temps de travail théorique attendu est appliquée (retenue totale) et le statut passe en "Sortie manquante".</li>
-     * <li><b>Journée en cours :</b> Si l'absence de sortie concerne la journée d'aujourd'hui, l'algorithme considère que la
-     * session est en cours et ne pénalise pas le solde.</li>
-     * </ul>
-     * Enfin, l'écart global (Minutes travaillées - Minutes théoriques dues) est soumis au filtre de tolérance avant d'être affecté à l'employé.
+     * L'algorithme opère un scan chronologique absolu pour lier les entrées et sorties, même d'un jour à l'autre.
+     * Si une entrée est suivie d'une autre entrée, la première est marquée en "Sortie manquante".
+     * Il convertit ensuite les paires valides en temps de travail effectif.
      * </p>
      *
-     * @param employee          L'employé {@link Employee} dont le solde doit être mis à jour.
-     * @param attendanceHistory La liste complète de tous les pointages historiques rattachés à cet employé.
+     * @param employee          L'employé dont le solde doit être mis à jour.
+     * @param attendanceHistory La liste complète de tous les pointages historiques de cet employé.
      */
     public void recalculateBalance(Employee employee, List<AttendanceRecord> attendanceHistory) {
         employee.setSoldeMinutes(0L);
@@ -159,8 +132,46 @@ public class AttendanceService {
             return;
         }
 
+        // 1. Tri chronologique absolu de tout l'historique
         attendanceHistory.sort(Comparator.comparing(AttendanceRecord::getTime));
+        LocalDate today = LocalDate.now();
 
+        // 2. Scan global pour détecter les anomalies logiques
+        for (int i = 0; i < attendanceHistory.size(); i++) {
+            AttendanceRecord current = attendanceHistory.get(i);
+
+            if (current.isCheckIn()) {
+                if (i + 1 < attendanceHistory.size()) {
+                    AttendanceRecord next = attendanceHistory.get(i + 1);
+
+                    if (next.isCheckIn()) {
+                        // L'employé a refait une "Entrée" sans faire de "Sortie" avant.
+                        current.setStatus("Incident : Sortie manquante");
+                    } else {
+                        // C'est bien une "Sortie". A-t-elle été faite le même jour ?
+                        if (!current.getTime().toLocalDate().equals(next.getTime().toLocalDate())) {
+                            current.setStatus("Incident : Sortie manquante");
+                        } else {
+                            // Paire parfaite. Si c'était une vieille erreur corrigée, on restaure le statut.
+                            if (current.getStatus() != null && current.getStatus().contains("Sortie manquante")) {
+                                evaluateAndApplyAttendance(current);
+                            }
+                            i++; // On saute la "Sortie" car elle est validée
+                        }
+                    }
+                } else {
+                    // C'est le tout dernier pointage de l'historique
+                    if (current.getTime().toLocalDate().isBefore(today)) {
+                        current.setStatus("Incident : Sortie manquante");
+                    }
+                }
+            } else {
+                // Une "Sortie" trouvée sans "Entrée" préalable (car les paires sont sautées par i++)
+                current.setStatus("Incident : Entrée manquante");
+            }
+        }
+
+        // 3. Calcul du solde par blocs journaliers
         Map<LocalDate, List<AttendanceRecord>> recordsByDay = attendanceHistory.stream()
                 .collect(Collectors.groupingBy(r -> r.getTime().toLocalDate()));
 
@@ -168,14 +179,11 @@ public class AttendanceService {
         ConfigManager config = new ConfigManager();
         int tolerance = config.getToleranceMinutes();
 
-        LocalDate today = LocalDate.now();
-
         for (Map.Entry<LocalDate, List<AttendanceRecord>> entry : recordsByDay.entrySet()) {
             LocalDate date = entry.getKey();
             List<AttendanceRecord> dailyRecords = entry.getValue();
 
             long workedMinutesToday = 0L;
-            boolean missingCheckoutAnomaly = false;
             boolean shiftInProgress = false;
 
             for (int i = 0; i < dailyRecords.size(); i++) {
@@ -183,21 +191,11 @@ public class AttendanceService {
 
                 if (current.isCheckIn()) {
                     if (i + 1 < dailyRecords.size() && !dailyRecords.get(i + 1).isCheckIn()) {
-                        AttendanceRecord checkOut = dailyRecords.get(i + 1);
-                        workedMinutesToday += Duration.between(current.getTime(), checkOut.getTime()).toMinutes();
-
-                        if (current.getStatus() != null && current.getStatus().contains("Sortie manquante")) {
-                            evaluateAndApplyAttendance(current);
-                        }
-
+                        workedMinutesToday += Duration.between(current.getTime(), dailyRecords.get(i + 1).getTime()).toMinutes();
                         i++;
-                    } else {
-                        if (date.isBefore(today)) {
-                            missingCheckoutAnomaly = true;
-                            current.setStatus("Incident : Sortie manquante");
-                        } else {
-                            shiftInProgress = true;
-                        }
+                    } else if (!current.getStatus().contains("Sortie manquante")) {
+                        // L'employé est actuellement en train de travailler (aujourd'hui)
+                        shiftInProgress = true;
                     }
                 }
             }
@@ -207,15 +205,11 @@ public class AttendanceService {
                 expectedMinutes = employee.getSchedule().getMinutesPourCeJour(date.getDayOfWeek());
             }
 
-            if (missingCheckoutAnomaly) {
-                newBalance -= expectedMinutes;
-            } else if (!shiftInProgress) {
+            if (!shiftInProgress) {
                 long rawDifference = workedMinutesToday - expectedMinutes;
-
                 if (Math.abs(rawDifference) <= tolerance) {
                     rawDifference = 0;
                 }
-
                 newBalance += rawDifference;
             }
         }
@@ -224,14 +218,7 @@ public class AttendanceService {
     }
 
     /**
-     * Ajoute un nouveau pointage au modèle de données de l'entreprise et recalcule le solde de l'employé associé.
-     * <p>
-     * Évalue les critères de conformité temporelle immédiatement, insère l'enregistrement dans la liste centrale,
-     * puis isole l'historique complet de l'employé concerné pour lancer un recalcul synchrone du solde de minutes.
-     * </p>
-     *
-     * @param record Le nouvel enregistrement de pointage à valider et insérer.
-     * @throws Exception Si l'objet pointage ou sa référence d'employé associée est invalide (null).
+     * @brief Ajoute un nouveau pointage au modèle et recalcule le solde de l'employé associé.
      */
     public void addAttendanceRecord(AttendanceRecord record) throws Exception {
         if (record == null || record.getEmployee() == null) {
@@ -251,14 +238,7 @@ public class AttendanceService {
     }
 
     /**
-     * Traite et réévalue un pointage existant suite à une modification ou correction manuelle.
-     * <p>
-     * Relance l'évaluation des règles de planning, ajoute la mention textuelle "(Modifié)" au statut de
-     * l'enregistrement, puis met à jour le solde d'heures de l'employé en recalculant son historique.
-     * </p>
-     *
-     * @param record L'enregistrement de pointage modifié à régulariser.
-     * @throws Exception Si la référence du pointage est nulle.
+     * @brief Traite et réévalue un pointage existant suite à une modification ou correction manuelle.
      */
     public void updateAttendanceRecord(AttendanceRecord record) throws Exception {
         if (record == null) throw new Exception("Le pointage à modifier est invalide.");
@@ -276,23 +256,14 @@ public class AttendanceService {
     }
 
     /**
-     * Récupère la liste brute de tous les enregistrements de pointage de l'entreprise.
-     *
-     * @return Une {@link List} contenant l'ensemble des objets {@link AttendanceRecord}.
+     * @brief Récupère la liste brute de tous les enregistrements de pointage.
      */
     public List<AttendanceRecord> getAllAttendanceRecords() {
         return company.getAttendanceRecords();
     }
 
     /**
-     * Supprime définitivement un enregistrement de pointage du modèle central de données.
-     * <p>
-     * Supprime l'objet de la collection globale et déclenche instantanément une régularisation du solde de minutes
-     * de l'employé impacté pour effacer l'empreinte de ce pointage de son historique de présence.
-     * </p>
-     *
-     * @param record L'enregistrement de pointage à radier de l'application.
-     * @throws Exception Si le pointage est nul ou introuvable dans le système.
+     * @brief Supprime définitivement un enregistrement de pointage du modèle central de données.
      */
     public void deleteAttendanceRecord(AttendanceRecord record) throws Exception {
         if (record == null || !company.getAttendanceRecords().remove(record)) {
@@ -311,22 +282,7 @@ public class AttendanceService {
     }
 
     /**
-     * Importe de manière massive un flux de pointages à partir d'un fichier CSV externe.
-     * <p>
-     * Cette méthode procède par étapes séquentielles :
-     * <ul>
-     * <li>Ouvre un canal de lecture tamponné (BufferedReader) et saute la ligne d'en-tête du fichier.</li>
-     * <li>Parse chaque ligne textuelle autour du séparateur {@code ";"}.</li>
-     * <li>Recherche l'employé correspondant à l'identifiant (UUID) lu à l'aide d'un filtre Stream. Si l'employé n'existe pas, la ligne est ignorée.</li>
-     * <li>Instancie un {@link AttendanceRecord} et interprète l'horodatage via un parseur flexible multiformat (acceptant avec ou sans deux-points).</li>
-     * <li>Qualifie le type de signalement (IN/OUT), applique l'évaluation métier unitaire et injecte la donnée dans le modèle central.</li>
-     * </ul>
-     * Une fois la lecture complète achevée, elle exécute une boucle finale pour recalculer de bout en bout les compteurs de soldes
-     * de chaque employé présent dans l'organisation, puis force l'écriture physique sur disque.
-     * </p>
-     *
-     * @param file Le descripteur de fichier {@link File} représentant le CSV sélectionné.
-     * @throws Exception Si le fichier est nul, introuvable ou si la structure d'une colonne viole les contraintes de formatage.
+     * @brief Importe de manière massive un flux de pointages à partir d'un fichier CSV externe.
      */
     public void importRecordsFromCSV(File file) throws Exception {
         if (file == null || !file.exists()) {
@@ -390,10 +346,7 @@ public class AttendanceService {
     }
 
     /**
-     * Déclenche la sérialisation et l'écriture de l'état de l'entreprise sur le disque local.
-     * <p>
-     * Méthode interne de synchronisation déléguant la persistance binaire au {@link PersistenceManager}.
-     * </p>
+     * @brief Déclenche la sérialisation et l'écriture de l'état de l'entreprise sur le disque local.
      */
     private void saveData() {
         try {

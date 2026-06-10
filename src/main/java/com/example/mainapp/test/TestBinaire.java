@@ -12,8 +12,23 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
+/**
+ * @brief Script de génération du jeu d'essai initial (Data Seeder).
+ * <p>
+ * Cette classe utilitaire permet de réinitialiser l'environnement de test en
+ * générant une entreprise complète avec ses départements, ses employés,
+ * leurs horaires spécifiques, et un jeu de pointages cohérent.
+ * Elle valide également le bon fonctionnement du PersistenceManager.
+ * </p>
+ *
+ * @author Youssef M'SADAA, Ahmed DEBBACH, Youssef RIANI, Mohamed Yassine BEN ABDA, Youssef ELYAHYAOUI
+ */
 public class TestBinaire {
 
+    /**
+     * @brief Point d'entrée du générateur de données.
+     * @param args Arguments de la ligne de commande (non utilisés).
+     */
     public static void main(String[] args) {
 
         System.out.println("=== 1. PRÉPARATION DES DONNÉES ===");
@@ -75,21 +90,27 @@ public class TestBinaire {
         deptLogistics.addEmployee(emp9);
         deptLogistics.addEmployee(emp10);
 
-        LocalDateTime aujourdhui = LocalDateTime.now();
+        // Nettoyage des secondes pour un affichage IHM propre
+        LocalDateTime aujourdhui = LocalDateTime.now().withSecond(0).withNano(0);
 
+        // Scénario 1 : DEBBACH (Horaire prévu : 09:00 - 18:00) -> Arrivée en avance, départ en retard
         AttendanceRecord att1 = new AttendanceRecord(emp2, aujourdhui.withHour(8).withMinute(55), true);
         AttendanceRecord att2 = new AttendanceRecord(emp2, aujourdhui.withHour(18).withMinute(5), false);
 
-        AttendanceRecord att3 = new AttendanceRecord(emp4, aujourdhui.withHour(9).withMinute(15), true);
+        // Scénario 2 : BEN ABDA (Horaire prévu : 08:30 - 17:30) -> Ponctualité parfaite
+        AttendanceRecord att3 = new AttendanceRecord(emp4, aujourdhui.withHour(8).withMinute(25), true);
+        AttendanceRecord att4 = new AttendanceRecord(emp4, aujourdhui.withHour(17).withMinute(30), false);
 
-        AttendanceRecord att4 = new AttendanceRecord(emp3, aujourdhui.withHour(7).withMinute(25), true);
+        // Scénario 3 : RIANI (Horaire prévu : 07:30 - 16:30) -> Retard le matin (pour tester la tolérance)
+        AttendanceRecord att5 = new AttendanceRecord(emp3, aujourdhui.withHour(7).withMinute(45), true);
 
         maCompagnie.addAttendanceRecord(att1);
         maCompagnie.addAttendanceRecord(att2);
         maCompagnie.addAttendanceRecord(att3);
         maCompagnie.addAttendanceRecord(att4);
+        maCompagnie.addAttendanceRecord(att5);
 
-        System.out.println("Données générées avec succès (10 employés, 4 départements, 4 pointages).");
+        System.out.println("Données générées avec succès (10 employés, 4 départements, 5 pointages).");
 
         System.out.println("\n=== 2. TEST DE SAUVEGARDE ===");
         PersistenceManager.saveData(maCompagnie);
@@ -115,6 +136,10 @@ public class TestBinaire {
         }
     }
 
+    /**
+     * @brief Configure les plannings par défaut pour le département Informatique.
+     * @param emp Employé ciblé.
+     */
     private static void configurerScheduleIT(Employee emp) {
         Schedule schedule = emp.getSchedule();
         TimeSlot slot;
@@ -124,6 +149,10 @@ public class TestBinaire {
         for (DayOfWeek day : DayOfWeek.values()) schedule.definirJournee(day, slot);
     }
 
+    /**
+     * @brief Configure les plannings par défaut pour le département Ressources Humaines.
+     * @param emp Employé ciblé.
+     */
     private static void configurerScheduleRH(Employee emp) {
         Schedule schedule = emp.getSchedule();
         TimeSlot slot;
@@ -132,6 +161,10 @@ public class TestBinaire {
         for (DayOfWeek day : DayOfWeek.values()) schedule.definirJournee(day, slot);
     }
 
+    /**
+     * @brief Configure les plannings par défaut pour le département Comptabilité.
+     * @param emp Employé ciblé.
+     */
     private static void configurerScheduleAccounting(Employee emp) {
         Schedule schedule = emp.getSchedule();
         TimeSlot slot;
@@ -140,6 +173,10 @@ public class TestBinaire {
         for (DayOfWeek day : DayOfWeek.values()) schedule.definirJournee(day, slot);
     }
 
+    /**
+     * @brief Configure les plannings par défaut pour le département Logistique.
+     * @param emp Employé ciblé.
+     */
     private static void configurerScheduleLogistics(Employee emp) {
         Schedule schedule = emp.getSchedule();
         TimeSlot slot;

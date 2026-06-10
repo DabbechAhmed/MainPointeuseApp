@@ -6,57 +6,63 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
- * Serveur TCP chargé d'écouter et d'accepter les connexions des pointeuses clientes.
+ * Serveur TCP centralisé chargé d'écouter et de gérer les connexions des terminaux de pointage clients.
  * <p>
- * Cette classe implémente le pattern Singleton pour garantir une instance unique
- * du serveur au sein de l'application centrale. Elle s'exécute dans un thread dédié
- * (via {@link Runnable}) et délègue le traitement de chaque connexion entrante à un
- * {@link ClientHandler} s'exécutant dans son propre thread. Cela permet au système
- * de gérer plusieurs pointeuses simultanément sans se bloquer.
+ * Cette classe implémente le pattern Singleton pour garantir l'unicité du point d'écoute réseau.
+ * Elle s'exécute de manière asynchrone dans un thread dédié (via l'interface {@link Runnable})
+ * afin de ne pas bloquer le thread principal de l'interface graphique JavaFX.
  * </p>
+ * <p>
+ * <b>Architecture Concurrente et Multithread :</b>
+ * Pour absorber les flux simultanés de plusieurs pointeuses sans perte de données ni goulot d'étranglement,
+ * le serveur applique un principe de délégation stricte et non-bloquante :
+ * </p>
+ * <ul>
+ * <li>La boucle principale écoute les connexions entrantes via la méthode {@code accept()}.</li>
+ * <li>Dès qu'un signal est capté, le serveur instancie immédiatement un travailleur dédié ({@link ClientHandler}).</li>
+ * <li>Ce traitement est encapsulé et lancé dans un nouveau {@link Thread} indépendant.</li>
+ * <li>La méthode {@code accept()} est ainsi instantanément libérée et redevient disponible pour intercepter les requêtes concurrentes d'autres terminaux.</li>
+ * </ul>
  *
  * @author Youssef M'SADAA, Ahmed DEBBACH, Youssef RIANI, Mohamed Yassine BEN ABDA, Youssef ELYAHYAOUI
  */
 public class TCPServer implements Runnable {
 
-    /** L'instance unique (Singleton) du serveur TCP. */
+    /** Instance unique du serveur TCP (Pattern Singleton). */
     private static TCPServer instance;
 
-    /** Le port réseau d'écoute du serveur (par défaut 8080). */
+    /** Port réseau d'écoute de l'application serveur. */
     private int port = 8080;
 
-    /** Indicateur d'état du serveur (vrai si le serveur est en cours d'exécution). */
+    /** Indicateur de cycle de vie du serveur réseau. */
     private boolean isRunning = false;
 
-    /** Le socket serveur gérant la réception des connexions réseau entrantes. */
+    /** Socket de service chargé de l'ouverture du canal réseau et de l'écoute. */
     private ServerSocket serverSocket;
 
-    /** L'instance centrale de l'entreprise contenant les données métier (employés, pointages). */
+    /** Référence vers le modèle de données central de l'entreprise. */
     private Company company;
 
     /**
-     * Constructeur privé pour empêcher l'instanciation directe.
-     * <p>
-     * L'accès à l'instance doit se faire exclusivement via la méthode {@link #getInstance()}.
-     * </p>
+     * Constructeur privé restreignant l'instanciation directe pour préserver le pattern Singleton.
      */
     private TCPServer() {
     }
 
     /**
-     * Récupère l'instance de l'entreprise gérée par le serveur.
+     * Récupère l'instance du modèle de données de l'entreprise associée au serveur.
      *
-     * @return L'objet {@link Company} contenant toutes les données de l'application.
+     * @return L'instance globale de {@link Company}.
      */
     public Company getCompany() {
         return this.company;
     }
 
     /**
-     * Retourne l'instance unique du serveur TCP.
+     * Fournit l'accès à l'instance unique du serveur TCP.
      * <p>
-     * Cette méthode est synchronisée pour garantir la sécurité des threads (thread-safe)
-     * lors de la toute première initialisation du Singleton.
+     * La méthode est synchronisée pour sécuriser l'initialisation initiale du Singleton
+     * en contexte d'accès concurrent multithread.
      * </p>
      *
      * @return L'instance unique de {@link TCPServer}.
@@ -69,15 +75,10 @@ public class TCPServer implements Runnable {
     }
 
     /**
-     * Démarre le serveur TCP sur un port spécifique.
-     * <p>
-     * Si le serveur n'est pas déjà en cours d'exécution, cette méthode enregistre
-     * les paramètres métier et lance le processus d'écoute réseau dans un nouveau thread démon
-     * (qui s'arrêtera automatiquement à la fermeture de l'application).
-     * </p>
+     * Initialise les paramètres et amorce l'écoute réseau asynchrone du serveur.
      *
-     * @param port    Le port réseau sur lequel le serveur doit écouter les pointeuses.
-     * @param company L'objet central de l'entreprise pour le partage et la modification des données.
+     * @param port    Le port TCP d'écoute cible.
+     * @param company Le modèle de données central à lier aux flux entrants.
      */
     public void demarrer(int port, Company company) {
         if (!isRunning) {
@@ -91,11 +92,7 @@ public class TCPServer implements Runnable {
     }
 
     /**
-     * Arrête proprement le serveur TCP.
-     * <p>
-     * Cette méthode modifie l'indicateur d'état et ferme le socket serveur,
-     * ce qui interrompt immédiatement la boucle d'attente réseau et libère le port.
-     * </p>
+     * Interrompt l'activité du serveur et libère les sockets actifs.
      */
     public void arreter() {
         isRunning = false;
@@ -109,11 +106,11 @@ public class TCPServer implements Runnable {
     }
 
     /**
-     * Boucle principale d'exécution du serveur réseau.
+     * Boucle d'écoute réseau principale s'exécutant en arrière-plan.
      * <p>
-     * Ouvre le port réseau et attend indéfiniment de nouvelles connexions entrantes de la part
-     * des émulateurs de pointeuses. À chaque nouvelle connexion acceptée, un objet
-     * {@link ClientHandler} est instancié et démarré dans un thread séparé.
+     * Intercepte les connexions via un mécanisme bloquant unitaire ({@code accept()})
+     * puis bascule immédiatement la communication dans un fil d'exécution parallèle (Thread dédié)
+     * pour préserver la réactivité globale face aux requêtes simultanées de plusieurs pointeuses.
      * </p>
      */
     @Override
@@ -124,9 +121,11 @@ public class TCPServer implements Runnable {
             System.out.println("Serveur TCP démarré sur le port " + port);
 
             while (isRunning) {
+                // Attente non-bloquante pour les autres sockets grâce à la délégation immédiate
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("Nouvelle connexion reçue depuis : " + clientSocket.getInetAddress());
 
+                // Instanciation du gestionnaire et délégation immédiate dans un Thread dédié
                 ClientHandler handler = new ClientHandler(clientSocket, this.company);
                 Thread threadClient = new Thread(handler);
                 threadClient.start();
